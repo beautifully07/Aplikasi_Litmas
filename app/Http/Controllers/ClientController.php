@@ -51,8 +51,9 @@ class ClientController extends Controller
             'kewarganegaraan' => 'nullable|in:WNI,WNA',
 
             'status_perkawinan' => 'nullable|in:Belum Kawin,Kawin,Cerai Hidup,Cerai Mati',
-            'pendidikan' => 'nullable|string|max:100',
-            'pekerjaan' => 'nullable|string|max:100',
+            'pendidikan' => 'nullable|string',
+            'pekerjaan' => 'nullable|string',
+            'usia' => 'nullable|string'
         ]);
 
         // user login otomatis jadi pemilik client

@@ -3,34 +3,35 @@
 namespace App\Models;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-
 use Illuminate\Database\Eloquent\Model;
 
-class Client extends Model
+class Guarantor extends Model
 {
+    use HasFactory;
+
+    protected $table = 'penjamins';
+
     protected $fillable = [
+        'client_id',
         'nama',
-        'no_register',
         'tempat_lahir',
         'tanggal_lahir',
-        'jenis_kelamin',
         'agama',
         'suku',
-        'kebangsaan',
         'kewarganegaraan',
-        'status_perkawinan',
-        'pendidikan',
+        'pendidikan_terakhir',
         'pekerjaan',
         'alamat',
-        'ciri_khusus',
-        'usia'
+        'usia',
+        'hubungan_keluarga',
     ];
 
-  protected $table = 'clients';
+    protected $appends = ['usia'];
 
-    public function guarantors()
+    // Relasi ke Client
+    public function client()
     {
-        return $this->hasMany(Guarantor::class);
+        return $this->belongsTo(Client::class);
     }
     public function getUsiaAttribute()
     {

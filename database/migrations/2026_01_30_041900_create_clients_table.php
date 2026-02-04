@@ -39,6 +39,7 @@ return new class extends Migration
             $table->string('pekerjaan')->nullable();
             $table->text('alamat')->nullable();
             $table->text('ciri_khusus')->nullable();
+            $table->integer('usia')->nullable();
             $table->timestamps();
         });
     }
