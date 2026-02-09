@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
              // Relasi ke klien / warga binaan (opsional, sesuaikan kebutuhan)
             $table->unsignedBigInteger('client_id')->nullable();
-
+            $table->integer('no_kk');
             $table->string('nama');
             $table->string('tempat_lahir');
             $table->date('tanggal_lahir');

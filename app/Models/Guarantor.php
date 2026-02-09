@@ -13,6 +13,7 @@ class Guarantor extends Model
 
     protected $fillable = [
         'client_id',
+        'no_kk',
         'nama',
         'tempat_lahir',
         'tanggal_lahir',
