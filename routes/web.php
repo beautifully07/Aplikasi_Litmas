@@ -5,6 +5,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\LitmasController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\ClientController;
 
 /*
 |--------------------------------------------------------------------------
@@ -40,6 +41,25 @@ Route::middleware('auth')->group(function () {
 
     Route::post('/litmas', [LitmasController::class, 'store'])
         ->name('litmas.store');
+
+    // CLIENT (SEMUA LOGIN)
+    Route::get('/clients', [ClientController::class, 'index'])
+        ->name('clients.index');
+
+    Route::get('/clients/create', [ClientController::class, 'create'])
+        ->name('clients.create');
+
+    Route::post('/clients', [ClientController::class, 'store'])
+        ->name('clients.store');
+
+    Route::get('/clients/{client}', [ClientController::class, 'show'])
+        ->name('clients.show');
+
+    Route::get('/clients/{client}/edit', [ClientController::class, 'edit'])
+        ->name('clients.edit');
+
+    Route::put('/clients/{client}', [ClientController::class, 'update'])
+        ->name('clients.update');
 });
 
 // ========================
@@ -55,6 +75,11 @@ Route::middleware(['auth', 'role:user'])->group(function () {
 // ========================
 Route::middleware(['auth', 'role:admin'])->group(function () {
 
+    // CLIENT DELETE
+    Route::delete('/clients/{client}', [ClientController::class, 'destroy'])
+        ->name('clients.destroy');
+    
+    // Manajemen User
     Route::get('/manajemen-user', [UserController::class, 'index'])
         ->name('users.index');
 

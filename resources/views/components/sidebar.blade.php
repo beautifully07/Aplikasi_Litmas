@@ -43,6 +43,15 @@
         📄 Data Litmas
     </a>
 
+    {{-- DATA KLIEN --}}
+    <a href="{{ route('clients.index') }}"
+       class="flex items-center gap-3 px-4 py-2 rounded-xl transition-all duration-200
+       {{ request()->routeIs('klien.*')
+            ? 'bg-blue-600 shadow-lg shadow-blue-600/30'
+            : 'hover:bg-slate-700' }}">
+        🧑‍💼 Data Klien
+    </a>
+
     {{-- MANAJEMEN USER (HANYA ADMIN) --}}
     @if(auth()->user()->role === 'admin')
         <a href="{{ route('users.index') }}"
