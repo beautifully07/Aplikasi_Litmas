@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Client;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
 
 class ClientController extends Controller
@@ -16,11 +17,14 @@ class ClientController extends Controller
      */
     public function index(Request $request)
     {
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+
         $query = Client::with('user');
 
-        // Role user → filter client miliknya
-        if (!auth()->user()->hasAnyRole(['admin', 'superuser'])) {
-            $query->where('user_id', auth()->id());
+        // User biasa → hanya client miliknya
+        if (!$user->hasAnyRole(['admin', 'superuser'])) {
+            $query->where('user_id', $user->id);
         }
 
         // 🔍 Search nama client
@@ -35,19 +39,22 @@ class ClientController extends Controller
             ->paginate($perPage)
             ->withQueryString();
 
-        return view('clients.index', compact('clients'));
+        return view('clients.index', compact('clients','perPage'));
     }
 
     /**
      * CREATE
-     * - Admin & Superuser bisa memilih user (petugas)
-     * - User biasa otomatis dirinya sendiri
+     * - Admin & Superuser: pilih user (petugas)
+     * - User biasa: otomatis dirinya sendiri
      */
     public function create()
     {
-        $users = [];
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
 
-        if (auth()->user()->hasAnyRole(['admin', 'superuser'])) {
+        $users = collect();
+
+        if ($user->hasAnyRole(['admin', 'superuser'])) {
             $users = User::role('user')->get();
         }
 
@@ -60,33 +67,36 @@ class ClientController extends Controller
      */
     public function store(Request $request)
     {
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+
         $rules = [
-            'nama' => 'required|string',
-            'no_register' => 'required|unique:clients,no_register',
-            'tempat_lahir' => 'nullable|string',
-            'tanggal_lahir' => 'nullable|date_format:d-m-Y',
-            'jenis_kelamin' => 'required|in:L,P',
-            'agama' => 'nullable|string',
-            'status_perkawinan' => 'nullable|string',
-            'suku' => 'nullable|string',
-            'kebangsaan' => 'nullable|string',
-            'kewarganegaraan' => 'nullable|string',
-            'pendidikan' => 'nullable|string',
-            'pekerjaan' => 'nullable|string',
-            'alamat' => 'nullable|string',
-            'ciri_khusus' => 'nullable|string',
+            'nama'             => 'required|string|max:255',
+            'no_register'      => 'required|unique:clients,no_register',
+            'tempat_lahir'     => 'nullable|string|max:255',
+            'tanggal_lahir'    => 'nullable|date_format:d-m-Y',
+            'jenis_kelamin'    => 'required|in:L,P',
+            'agama'            => 'nullable|string|max:100',
+            'status_perkawinan'=> 'nullable|string|max:100',
+            'suku'             => 'nullable|string|max:100',
+            'kebangsaan'       => 'nullable|string|max:100',
+            'kewarganegaraan'  => 'nullable|string|max:100',
+            'pendidikan'       => 'nullable|string|max:100',
+            'pekerjaan'        => 'nullable|string|max:255',
+            'alamat'           => 'nullable|string',
+            'ciri_khusus'      => 'nullable|string',
         ];
 
-        // Admin wajib memilih user
-        if (auth()->user()->hasAnyRole(['admin', 'superuser'])) {
+        // Admin & superuser wajib pilih user
+        if ($user->hasAnyRole(['admin', 'superuser'])) {
             $rules['user_id'] = 'required|exists:users,id';
         }
 
         $validated = $request->validate($rules);
 
         // User biasa → otomatis dirinya sendiri
-        if (auth()->user()->hasRole('user')) {
-            $validated['user_id'] = auth()->id();
+        if (!$user->hasAnyRole(['admin', 'superuser'])) {
+            $validated['user_id'] = $user->id;
         }
 
         // 🔹 Parsing tanggal lahir
@@ -94,14 +104,15 @@ class ClientController extends Controller
             ? Carbon::createFromFormat('d-m-Y', $validated['tanggal_lahir'])->format('Y-m-d')
             : null;
 
-        // 🔹 Hitung usia di backend
+        // 🔹 Hitung usia
         $validated['usia'] = $validated['tanggal_lahir']
             ? Carbon::parse($validated['tanggal_lahir'])->age
             : null;
 
         Client::create($validated);
 
-        return redirect()->route('clients.index')
+        return redirect()
+            ->route('clients.index')
             ->with('success', 'Data client berhasil disimpan');
     }
 
@@ -111,11 +122,14 @@ class ClientController extends Controller
      */
     public function show($id)
     {
-        $client = Client::findOrFail($id);
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+
+        $client = Client::with('user')->findOrFail($id);
 
         if (
-            auth()->user()->hasRole('user') &&
-            $client->user_id !== auth()->id()
+            !$user->hasAnyRole(['admin', 'superuser']) &&
+            $client->user_id !== $user->id
         ) {
             abort(403);
         }
@@ -129,52 +143,47 @@ class ClientController extends Controller
      */
     public function update(Request $request, $id)
     {
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+
         $client = Client::findOrFail($id);
 
         if (
-            auth()->user()->hasRole('user') &&
-            $client->user_id !== auth()->id()
+            !$user->hasAnyRole(['admin', 'superuser']) &&
+            $client->user_id !== $user->id
         ) {
             abort(403);
         }
 
         $rules = [
-            'nama' => 'required|string',
-            'no_register' => 'required|unique:clients,no_register,' . $client->id,
-            'tempat_lahir' => 'nullable|string',
+            'nama'          => 'required|string|max:255',
+            'no_register'   => 'required|unique:clients,no_register,' . $client->id,
+            'tempat_lahir'  => 'nullable|string|max:255',
             'tanggal_lahir' => 'nullable|date_format:d-m-Y',
             'jenis_kelamin' => 'required|in:L,P',
-            'agama' => 'nullable|string',
-            'status_perkawinan' => 'nullable|string',
-            'suku' => 'nullable|string',
-            'kebangsaan' => 'nullable|string',
-            'kewarganegaraan' => 'nullable|string',
-            'pendidikan' => 'nullable|string',
-            'pekerjaan' => 'nullable|string',
-            'alamat' => 'nullable|string',
-            'ciri_khusus' => 'nullable|string',
+            'agama'         => 'nullable|string|max:100',
+            'alamat'        => 'nullable|string',
+            'ciri_khusus'   => 'nullable|string',
         ];
 
-        // Admin boleh mengganti petugas
-        if (auth()->user()->hasAnyRole(['admin', 'superuser'])) {
+        if ($user->hasAnyRole(['admin', 'superuser'])) {
             $rules['user_id'] = 'required|exists:users,id';
         }
 
         $validated = $request->validate($rules);
 
-        // 🔹 Parsing tanggal lahir
         $validated['tanggal_lahir'] = $validated['tanggal_lahir']
             ? Carbon::createFromFormat('d-m-Y', $validated['tanggal_lahir'])->format('Y-m-d')
             : null;
 
-        // 🔹 Hitung ulang usia
         $validated['usia'] = $validated['tanggal_lahir']
             ? Carbon::parse($validated['tanggal_lahir'])->age
             : null;
 
         $client->update($validated);
 
-        return redirect()->route('clients.index')
+        return redirect()
+            ->route('clients.index')
             ->with('success', 'Data client berhasil diperbarui');
     }
 
@@ -184,14 +193,18 @@ class ClientController extends Controller
      */
     public function destroy($id)
     {
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+
         abort_unless(
-            auth()->user()->hasAnyRole(['admin', 'superuser']),
+            $user->hasAnyRole(['admin', 'superuser']),
             403
         );
 
         Client::destroy($id);
 
-        return redirect()->route('clients.index')
+        return redirect()
+            ->route('clients.index')
             ->with('success', 'Data client berhasil dihapus');
     }
 }
