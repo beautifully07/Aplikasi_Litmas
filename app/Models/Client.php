@@ -1,24 +1,24 @@
 <?php
 
 namespace App\Models;
-use Carbon\Carbon;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 use Illuminate\Database\Eloquent\Model;
+use Carbon\Carbon;
 
 class Client extends Model
 {
     protected $fillable = [
+        'user_id',
         'nama',
         'no_register',
         'tempat_lahir',
         'tanggal_lahir',
         'jenis_kelamin',
         'agama',
+        'status_perkawinan',
         'suku',
         'kebangsaan',
         'kewarganegaraan',
-        'status_perkawinan',
         'pendidikan',
         'pekerjaan',
         'alamat',
@@ -26,14 +26,19 @@ class Client extends Model
         'usia'
     ];
 
-  protected $table = 'clients';
+    protected $table = 'clients';
 
-    public function guarantors()
+    // 🔗 Relasi ke petugas
+    public function user()
     {
-        return $this->hasMany(Guarantor::class);
+        return $this->belongsTo(User::class);
     }
+
+    // 🔢 Hitung usia otomatis
     public function getUsiaAttribute()
     {
-        return Carbon::parse($this->tanggal_lahir)->age;
+        return $this->tanggal_lahir
+            ? Carbon::parse($this->tanggal_lahir)->age
+            : null;
     }
 }
