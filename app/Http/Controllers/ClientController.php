@@ -12,50 +12,40 @@ class ClientController extends Controller
 {
     /**
      * INDEX
-     * - Admin & Superuser: lihat semua client
-     * - User: hanya client miliknya
+     * Admin & Superuser → semua client
+     * User → hanya miliknya
      */
     public function index(Request $request)
     {
-        /** @var \App\Models\User $user */
         $user = Auth::user();
 
         $query = Client::with('user');
 
-        // User biasa → hanya client miliknya
         if (!$user->hasAnyRole(['admin', 'superuser'])) {
             $query->where('user_id', $user->id);
         }
 
-        // 🔍 Search nama client
         if ($request->filled('search')) {
             $query->where('nama', 'like', '%' . $request->search . '%');
         }
 
         $perPage = $request->get('per_page', 10);
 
-        $clients = $query
-            ->latest()
-            ->paginate($perPage)
-            ->withQueryString();
+        $clients = $query->latest()->paginate($perPage)->withQueryString();
 
         return view('clients.index', compact('clients','perPage'));
     }
 
     /**
      * CREATE
-     * - Admin & Superuser: pilih user (petugas)
-     * - User biasa: otomatis dirinya sendiri
      */
     public function create()
     {
-        /** @var \App\Models\User $user */
         $user = Auth::user();
-
         $users = collect();
 
         if ($user->hasAnyRole(['admin', 'superuser'])) {
-            $users = User::role('user')->get();
+            $users = User::role('user')->orderBy('name')->get();
         }
 
         return view('clients.create', compact('users'));
@@ -63,11 +53,9 @@ class ClientController extends Controller
 
     /**
      * STORE
-     * Semua role bisa tambah client
      */
     public function store(Request $request)
     {
-        /** @var \App\Models\User $user */
         $user = Auth::user();
 
         $rules = [
@@ -87,45 +75,36 @@ class ClientController extends Controller
             'ciri_khusus'      => 'nullable|string',
         ];
 
-        // Admin & superuser wajib pilih user
         if ($user->hasAnyRole(['admin', 'superuser'])) {
             $rules['user_id'] = 'required|exists:users,id';
         }
 
         $validated = $request->validate($rules);
 
-        // User biasa → otomatis dirinya sendiri
         if (!$user->hasAnyRole(['admin', 'superuser'])) {
             $validated['user_id'] = $user->id;
         }
 
-        // 🔹 Parsing tanggal lahir
         $validated['tanggal_lahir'] = $validated['tanggal_lahir']
             ? Carbon::createFromFormat('d-m-Y', $validated['tanggal_lahir'])->format('Y-m-d')
             : null;
 
-        // 🔹 Hitung usia
         $validated['usia'] = $validated['tanggal_lahir']
             ? Carbon::parse($validated['tanggal_lahir'])->age
             : null;
 
         Client::create($validated);
 
-        return redirect()
-            ->route('clients.index')
+        return redirect()->route('clients.index')
             ->with('success', 'Data client berhasil disimpan');
     }
 
     /**
      * SHOW
-     * User hanya boleh lihat client miliknya
      */
-    public function show($id)
+    public function show(Client $client)
     {
-        /** @var \App\Models\User $user */
         $user = Auth::user();
-
-        $client = Client::with('user')->findOrFail($id);
 
         if (
             !$user->hasAnyRole(['admin', 'superuser']) &&
@@ -134,27 +113,40 @@ class ClientController extends Controller
             abort(403);
         }
 
+        $client->load('user');
+
         return view('clients.show', compact('client'));
     }
 
     /**
-     * FORM EDIT CLIENT  ✅ INI YANG SEBELUMNYA BELUM ADA
+     * EDIT (FIX DROPDOWN PETUGAS)
      */
     public function edit(Client $client)
     {
-        return view('clients.edit', compact('client'));
+        $user = Auth::user();
+
+        if (
+            !$user->hasAnyRole(['admin', 'superuser']) &&
+            $client->user_id !== $user->id
+        ) {
+            abort(403);
+        }
+
+        $users = collect();
+
+        if ($user->hasAnyRole(['admin', 'superuser'])) {
+            $users = User::role('user')->orderBy('name')->get();
+        }
+
+        return view('clients.edit', compact('client','users'));
     }
 
     /**
      * UPDATE
-     * User hanya boleh update client miliknya
      */
-    public function update(Request $request, $id)
+    public function update(Request $request, Client $client)
     {
-        /** @var \App\Models\User $user */
         $user = Auth::user();
-
-        $client = Client::findOrFail($id);
 
         if (
             !$user->hasAnyRole(['admin', 'superuser']) &&
@@ -194,31 +186,29 @@ class ClientController extends Controller
             ? Carbon::parse($validated['tanggal_lahir'])->age
             : null;
 
+        // 🔒 User biasa tidak boleh ubah petugas
+        if (!$user->hasAnyRole(['admin', 'superuser'])) {
+            $validated['user_id'] = $client->user_id;
+        }
+
         $client->update($validated);
 
-        return redirect()
-            ->route('clients.index')
+        return redirect()->route('clients.index')
             ->with('success', 'Data client berhasil diperbarui');
     }
 
     /**
-     * DESTROY
-     * Hanya Admin & Superuser
+     * DELETE
      */
-    public function destroy($id)
+    public function destroy(Client $client)
     {
-        /** @var \App\Models\User $user */
         $user = Auth::user();
 
-        abort_unless(
-            $user->hasAnyRole(['admin', 'superuser']),
-            403
-        );
+        abort_unless($user->hasAnyRole(['admin', 'superuser']), 403);
 
-        Client::destroy($id);
+        $client->delete();
 
-        return redirect()
-            ->route('clients.index')
+        return redirect()->route('clients.index')
             ->with('success', 'Data client berhasil dihapus');
     }
 }

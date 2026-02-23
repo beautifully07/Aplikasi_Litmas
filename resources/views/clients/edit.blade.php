@@ -12,6 +12,23 @@
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
 
+        {{-- PETUGAS (HANYA ADMIN & SUPERUSER) --}}
+@hasanyrole('admin|superuser')
+<div>
+    <label class="block mb-1 font-semibold">Pembimbing Kemasyarakatan</label>
+
+    <select name="user_id" class="w-full border rounded px-3 py-2" required>
+        <option value="">-- Pilih PK --</option>
+        @foreach($users as $u)
+            <option value="{{ $u->id }}"
+                {{ old('user_id', $client->user_id) == $u->id ? 'selected' : '' }}>
+                {{ $u->name }}
+            </option>
+        @endforeach
+    </select>
+</div>
+@endhasanyrole
+
             {{-- NAMA --}}
             <div>
                 <label class="block mb-1 font-semibold">Nama</label>

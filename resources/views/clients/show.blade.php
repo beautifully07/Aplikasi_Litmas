@@ -87,6 +87,11 @@
                     <td class="py-2 text-gray-500">Ciri Khusus</td>
                     <td class="py-2">{{ $client->ciri_khusus ?? '-' }}</td>
                 </tr>
+
+                 <tr>
+                    <td class="py-2 text-gray-500">Pembimbing Kemasyarakatan</td>
+                    <td class="py-2">{{ $client->user->name ?? '-' }}</td>
+                </tr>
             </table>
         </div>
 

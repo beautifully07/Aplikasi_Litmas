@@ -41,4 +41,17 @@ class Client extends Model
             ? Carbon::parse($this->tanggal_lahir)->age
             : null;
     }
+
+    //Relasi ke penjamin
+     public function guarantors()
+    {
+        return $this->hasMany(Guarantor::class);
+    }
+
+    public function show(Client $client)
+{
+    $client->load('user'); // ambil data petugasnya
+
+    return view('clients.show', compact('client'));
+}
 }

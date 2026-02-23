@@ -65,6 +65,7 @@
                 <th class="px-4 py-3 text-left">Status</th>
                 <th class="px-4 py-3 text-left">Pekerjaan</th>
                 <th class="px-4 py-3 text-left">Ciri Khusus</th>
+                <th class="px-4 py-3 text-left">PK</th>
                 <th class="px-4 py-3 text-center">Aksi</th>
             </tr>
         </thead>
@@ -98,6 +99,10 @@
 
                     <td class="px-4 py-3">
                         {{ \Illuminate\Support\Str::limit($client->ciri_khusus, 30) ?? '-' }}
+                    </td>
+
+                    <td class="px-4 py-3">
+                        {{ $client->user->name ?? '-' }}
                     </td>
 
                     {{-- AKSI --}}

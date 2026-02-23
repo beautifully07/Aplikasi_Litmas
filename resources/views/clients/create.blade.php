@@ -12,10 +12,10 @@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
 
         <div>
-            <label>Pilih Petugas</label>
+            <label>Pembimbing Kemasyarakatan</label>
             <select name="user_id" class="w-full border rounded px-3 py-2" required>
 
-                <option value="" selected disabled>-- Pilih Petugas --</option>
+                <option value="" selected disabled>-- Pilih PK --</option>
 
                 @foreach($users as $u)
                     <option value="{{ $u->id }}"
