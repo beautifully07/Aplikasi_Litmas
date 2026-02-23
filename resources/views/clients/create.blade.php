@@ -11,6 +11,22 @@
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
 
+        <div>
+            <label>Pilih Petugas</label>
+            <select name="user_id" class="w-full border rounded px-3 py-2" required>
+
+                <option value="" selected disabled>-- Pilih Petugas --</option>
+
+                @foreach($users as $u)
+                    <option value="{{ $u->id }}"
+                        {{ old('user_id') == $u->id ? 'selected' : '' }}>
+                        {{ $u->name }}
+                    </option>
+                @endforeach
+
+            </select>
+        </div>
+
             {{-- NAMA --}}
             <div>
                 <label class="block mb-1 font-semibold">Nama</label>
