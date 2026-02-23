@@ -138,6 +138,14 @@ class ClientController extends Controller
     }
 
     /**
+     * FORM EDIT CLIENT  ✅ INI YANG SEBELUMNYA BELUM ADA
+     */
+    public function edit(Client $client)
+    {
+        return view('clients.edit', compact('client'));
+    }
+
+    /**
      * UPDATE
      * User hanya boleh update client miliknya
      */
@@ -156,14 +164,20 @@ class ClientController extends Controller
         }
 
         $rules = [
-            'nama'          => 'required|string|max:255',
-            'no_register'   => 'required|unique:clients,no_register,' . $client->id,
-            'tempat_lahir'  => 'nullable|string|max:255',
-            'tanggal_lahir' => 'nullable|date_format:d-m-Y',
-            'jenis_kelamin' => 'required|in:L,P',
-            'agama'         => 'nullable|string|max:100',
-            'alamat'        => 'nullable|string',
-            'ciri_khusus'   => 'nullable|string',
+            'nama'              => 'required|string|max:255',
+            'no_register'       => 'required|unique:clients,no_register,' . $client->id,
+            'tempat_lahir'      => 'nullable|string|max:255',
+            'tanggal_lahir'     => 'nullable|date_format:d-m-Y',
+            'jenis_kelamin'     => 'required|in:L,P',
+            'agama'             => 'nullable|string|max:100',
+            'status_perkawinan' => 'nullable|string|max:100',
+            'suku'              => 'nullable|string|max:100',
+            'kebangsaan'        => 'nullable|string|max:100',
+            'kewarganegaraan'   => 'nullable|string|max:100',
+            'pendidikan'        => 'nullable|string|max:100',
+            'pekerjaan'         => 'nullable|string|max:255',
+            'alamat'            => 'nullable|string',
+            'ciri_khusus'       => 'nullable|string',
         ];
 
         if ($user->hasAnyRole(['admin', 'superuser'])) {
