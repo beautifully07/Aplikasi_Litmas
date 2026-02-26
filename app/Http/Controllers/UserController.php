@@ -6,6 +6,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
+use Spatie\Permission\Models\Role;
 
 class UserController extends Controller
 {
@@ -15,15 +16,16 @@ class UserController extends Controller
     public function index(Request $request)
     {
         $search  = $request->search;
-        $perPage = $request->per_page ?? 10; // default 10
+        $perPage = $request->per_page ?? 10;
 
-        $users = User::when($search, function ($query) use ($search) {
+        $users = User::with('roles')
+            ->when($search, function ($query) use ($search) {
                 $query->where('name', 'like', "%{$search}%")
                       ->orWhere('username', 'like', "%{$search}%");
             })
-            ->orderBy('role')
+            ->orderBy('name')
             ->paginate($perPage)
-            ->withQueryString(); // agar search & per_page ikut pagination
+            ->withQueryString();
 
         return view('users.index', compact('users', 'search', 'perPage'));
     }
@@ -36,6 +38,9 @@ class UserController extends Controller
         return view('users.create');
     }
 
+    // =========================
+    // STORE (FIX ROLE SPATIE)
+    // =========================
     public function store(Request $request)
     {
         $request->validate([
@@ -45,12 +50,16 @@ class UserController extends Controller
             'role'     => 'required|in:admin,superuser,user',
         ]);
 
-        User::create([
+        // Buat user
+        $user = User::create([
             'name'     => $request->name,
             'username' => $request->username,
             'password' => Hash::make($request->password),
-            'role'     => $request->role,
+            'role'     => $request->role, // optional legacy column
         ]);
+
+        // 🔥 WAJIB: assign role ke Spatie
+        $user->assignRole($request->role);
 
         return redirect()
             ->route('users.index')
@@ -66,7 +75,7 @@ class UserController extends Controller
     }
 
     // =========================
-    // UPDATE + EDIT PASSWORD
+    // UPDATE + SYNC ROLE
     // =========================
     public function update(Request $request, User $user)
     {
@@ -79,14 +88,16 @@ class UserController extends Controller
 
         $user->name     = $request->name;
         $user->username = $request->username;
-        $user->role     = $request->role;
+        $user->role     = $request->role; // optional legacy column
 
-        // 🔐 password hanya berubah jika diisi
         if ($request->filled('password')) {
             $user->password = Hash::make($request->password);
         }
 
         $user->save();
+
+        // 🔥 sinkronkan role spatie
+        $user->syncRoles([$request->role]);
 
         return redirect()
             ->route('users.index')
@@ -98,7 +109,6 @@ class UserController extends Controller
     // =========================
     public function resetPassword(User $user)
     {
-        // admin tidak boleh reset password sendiri
         if ($user->id === Auth::id()) {
             return back()->with('error', 'Tidak bisa reset password sendiri');
         }
@@ -115,10 +125,12 @@ class UserController extends Controller
     // =========================
     public function destroy(User $user)
     {
-        // admin tidak bisa hapus diri sendiri
         if ($user->id === Auth::id()) {
             return back()->with('error', 'Anda tidak bisa menghapus akun sendiri');
         }
+
+        // hapus role relation juga (rapih)
+        $user->syncRoles([]);
 
         $user->delete();
 
