@@ -121,24 +121,26 @@ class ClientController extends Controller
     /**
      * EDIT (FIX DROPDOWN PETUGAS)
      */
-    public function edit(Client $client)
+        public function edit(Client $client)
     {
-        $user = Auth::user();
+        $authUser = Auth::user();
 
+        // Proteksi akses
         if (
-            !$user->hasAnyRole(['admin', 'superuser']) &&
-            $client->user_id !== $user->id
+            !$authUser->hasAnyRole(['admin', 'superuser']) &&
+            $client->user_id !== $authUser->id
         ) {
             abort(403);
         }
 
+        // 🔑 INI KUNCINYA
         $users = collect();
 
-        if ($user->hasAnyRole(['admin', 'superuser'])) {
-            $users = User::role('user')->orderBy('name')->get();
+        if ($authUser->hasAnyRole(['admin', 'superuser'])) {
+            $users = User::role('user')->get();
         }
 
-        return view('clients.edit', compact('client','users'));
+        return view('clients.edit', compact('client', 'users'));
     }
 
     /**

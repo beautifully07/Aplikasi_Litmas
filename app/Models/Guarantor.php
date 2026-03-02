@@ -9,7 +9,7 @@ class Guarantor extends Model
 {
     use HasFactory;
 
-    protected $table = 'penjamins';
+    protected $table = 'guarantors';
 
     protected $fillable = [
         'client_id',

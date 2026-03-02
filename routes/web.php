@@ -6,6 +6,7 @@ use App\Http\Controllers\LitmasController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\ClientController;
+use App\Http\Controllers\GuarantorController;
 
 /*
 |--------------------------------------------------------------------------
@@ -102,6 +103,30 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
         ->name('users.reset-password');
 });
 
+/*
+|--------------------------------------------------------------------------
+| PENJAMIN
+|--------------------------------------------------------------------------
+*/
+Route::middleware(['auth'])->group(function () {
+
+    Route::resource('penjamin', GuarantorController::class);
+
+    Route::get(
+        'klien/{client}/penjamin',
+        [GuarantorController::class, 'byClient']
+    )->name('penjamin.byClient');
+
+    Route::get(
+        'ajax/penjamin/{client}',
+        [GuarantorController::class, 'ajaxByClient']
+    )->name('penjamin.ajax');
+
+    Route::delete(
+        'penjamin/{penjamin}/force',
+        [GuarantorController::class, 'forceDelete']
+    )->name('penjamin.forceDelete');
+});
 
 // Auth routes
 require __DIR__.'/auth.php';

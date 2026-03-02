@@ -4,7 +4,7 @@
 <div class="max-w-5xl mx-auto bg-white p-6 rounded shadow">
 
     <h2 class="text-2xl font-bold mb-4">Tambah Data Penjamin</h2>
-
+    
     @if(session('success'))
         <div class="bg-green-100 text-green-700 p-3 rounded mb-4">
             {{ session('success') }}
@@ -31,7 +31,7 @@
 
             <!-- PENJAMIN 1 -->
             <div class="penjamin-item border rounded p-4 mb-4">
-                <h3 class="font-bold text-lg mb-3">Penjamin 1</h3>
+                <h3 class="penjamin-title font-bold text-lg mb-3">Penjamin 1</h3>
 
                 <div class="grid grid-cols-2 gap-3">
 
@@ -79,18 +79,27 @@
 
         </div>
 
-        <div class="flex gap-3 mt-4">
-            <button type="button" onclick="tambahPenjamin()" class="bg-blue-500 text-white px-4 py-2 rounded">
-                + Tambah Penjamin
-            </button>
+    <div class="mt-6 flex flex-wrap gap-4 items-center">
+        <button
+            type="button"
+            onclick="tambahPenjamin()"
+            class="inline-flex items-center bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded"
+        >
+            + Tambah Penjamin
+        </button>
 
-            <button type="submit" class="bg-green-600 text-white px-5 py-2 rounded">
-                Simpan
-            </button>
-        </div>
+        <button
+            type="submit"
+            class="inline-flex items-center bg-green-600 hover:bg-green-700 text-white px-5 py-2 rounded"
+        >
+            Simpan
+        </button>
 
-    </form>
-</div>
+        <a href="{{ route('penjamin.index') }}"
+           class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300">
+            Kembali
+        </a>
+    </div>
 
 <script>
 let index = 1;
@@ -99,7 +108,8 @@ function tambahPenjamin(){
 
     let html = `
     <div class="penjamin-item border rounded p-4 mb-4">
-        <h3 class="font-bold text-lg mb-3">Penjamin ${index+1}</h3>
+
+        <h3 class="penjamin-title font-bold text-lg mb-3"></h3>
 
         <div class="grid grid-cols-2 gap-3">
 
@@ -144,18 +154,49 @@ function tambahPenjamin(){
 
         <textarea name="penjamin[${index}][alamat]" placeholder="Alamat lengkap" class="border p-2 rounded w-full mt-3"></textarea>
 
-        <button type="button" onclick="hapusPenjamin(this)" class="mt-3 bg-red-500 text-white px-3 py-1 rounded">
+        <button type="button"
+            onclick="hapusPenjamin(this)"
+            class="mt-3 bg-red-600 hover:bg-red-700 text-white px-5 py-2 rounded">
             Hapus
         </button>
     </div>
     `;
 
-    document.getElementById('penjamin-wrapper').insertAdjacentHTML('beforeend',html);
-    index++;
+    document.getElementById('penjamin-wrapper')
+        .insertAdjacentHTML('beforeend', html);
+
+    renumberPenjamin(); // ✅ CUKUP DI SINI
 }
 
 function hapusPenjamin(btn){
     btn.closest('.penjamin-item').remove();
+    renumberPenjamin(); // ✅ WAJIB SAAT HAPUS
+}
+
+/* =========================
+   AUTO RENUMBER
+========================= */
+function renumberPenjamin() {
+
+    const items = document.querySelectorAll('.penjamin-item');
+
+    items.forEach((item, i) => {
+
+        item.querySelector('.penjamin-title')
+            .innerText = 'Penjamin ' + (i + 1);
+
+        item.querySelectorAll('input, select, textarea')
+            .forEach(el => {
+                if (el.name) {
+                    el.name = el.name.replace(
+                        /penjamin\[\d+\]/,
+                        `penjamin[${i}]`
+                    );
+                }
+            });
+    });
+
+    index = items.length;
 }
 
 function isiUmur(input){
@@ -167,7 +208,9 @@ function isiUmur(input){
     let m = today.getMonth() - tgl.getMonth();
     if (m < 0 || (m === 0 && today.getDate() < tgl.getDate())) umur--;
 
-    let usiaField = input.closest('.penjamin-item').querySelector('[name*="[usia]"]');
+    let usiaField = input.closest('.penjamin-item')
+        .querySelector('[name*="[usia]"]');
+
     usiaField.value = umur;
 
     if(umur < 18){
