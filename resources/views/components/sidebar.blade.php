@@ -25,53 +25,52 @@
     <!-- Menu -->
     <nav class="flex-1 px-3 mt-2 space-y-1">
 
-    {{-- DASHBOARD --}}
-    <a href="{{ route('dashboard') }}"
-       class="flex items-center gap-3 px-4 py-2 rounded-xl transition-all duration-200
-       {{ request()->routeIs('dashboard')
-            ? 'bg-blue-600 shadow-lg shadow-blue-600/30'
-            : 'hover:bg-slate-700' }}">
-        🏠 Dashboard
-    </a>
-
-    {{-- PASAL --}}
-    <a href="{{ route('pasal.index') }}"
-    class="flex items-center gap-3 px-4 py-2 rounded-xl transition-all duration-200
-    {{ request()->routeIs('pasal.*')
-            ? 'bg-blue-600 shadow-lg shadow-blue-600/30'
-            : 'hover:bg-slate-700' }}">
-        
-        📜 Pasal
-    </a>
-
-    {{-- DATA LITMAS --}}
-    <a href="{{ route('litmas.index') }}"
-       class="flex items-center gap-3 px-4 py-2 rounded-xl transition-all duration-200
-       {{ request()->routeIs('litmas.*')
-            ? 'bg-blue-600 shadow-lg shadow-blue-600/30'
-            : 'hover:bg-slate-700' }}">
-        📄 Data Litmas
-    </a>
-
-    {{-- DATA KLIEN --}}
-    <a href="{{ route('clients.index') }}"
-       class="flex items-center gap-3 px-4 py-2 rounded-xl transition-all duration-200
-       {{ request()->routeIs('klien.*')
-            ? 'bg-blue-600 shadow-lg shadow-blue-600/30'
-            : 'hover:bg-slate-700' }}">
-        🧑‍💼 Data Klien
-    </a>
-
-    {{-- MANAJEMEN USER (HANYA ADMIN) --}}
-   @if(auth()->user()->hasRole('admin'))
-        <a href="{{ route('users.index') }}"
+        {{-- DASHBOARD --}}
+        <a href="{{ route('dashboard') }}"
            class="flex items-center gap-3 px-4 py-2 rounded-xl transition-all duration-200
-           {{ request()->routeIs('users.*')
+           {{ request()->routeIs('dashboard')
                 ? 'bg-blue-600 shadow-lg shadow-blue-600/30'
                 : 'hover:bg-slate-700' }}">
-            👤 Manajemen User
+            🏠 Dashboard
         </a>
-    @endif
+
+        {{-- DATA LITMAS --}}
+        <a href="{{ route('litmas.index') }}"
+           class="flex items-center gap-3 px-4 py-2 rounded-xl transition-all duration-200
+           {{ request()->routeIs('litmas.*')
+                ? 'bg-blue-600 shadow-lg shadow-blue-600/30'
+                : 'hover:bg-slate-700' }}">
+            📄 Data Litmas
+        </a>
+
+        {{-- DATA KLIEN --}}
+        <a href="{{ route('clients.index') }}"
+           class="flex items-center gap-3 px-4 py-2 rounded-xl transition-all duration-200
+           {{ request()->routeIs('clients.*')
+                ? 'bg-blue-600 shadow-lg shadow-blue-600/30'
+                : 'hover:bg-slate-700' }}">
+            🧑‍💼 Data Klien
+        </a>
+
+        {{-- DATA PENJAMIN --}}
+        <a href="{{ route('penjamin.index') }}"
+           class="flex items-center gap-3 px-4 py-2 rounded-xl transition-all duration-200
+           {{ request()->routeIs('penjamin.*')
+                ? 'bg-blue-600 shadow-lg shadow-blue-600/30'
+                : 'hover:bg-slate-700' }}">
+            🧾 Data Penjamin
+        </a>
+
+        {{-- MANAJEMEN USER (HANYA ADMIN) --}}
+        @if(auth()->user()->role === 'admin')
+            <a href="{{ route('users.index') }}"
+               class="flex items-center gap-3 px-4 py-2 rounded-xl transition-all duration-200
+               {{ request()->routeIs('users.*')
+                    ? 'bg-blue-600 shadow-lg shadow-blue-600/30'
+                    : 'hover:bg-slate-700' }}">
+                👤 Manajemen User
+            </a>
+        @endif
 
     </nav>
 
