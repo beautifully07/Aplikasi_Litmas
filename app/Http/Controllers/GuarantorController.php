@@ -14,6 +14,8 @@ class GuarantorController extends Controller
     public function index(Request $request)
     {
     $user = auth()->user();
+    $query = Guarantor::with('client');
+     $perPage = $request->get('per_page', 10);
 
     $penjamins = Guarantor::with('client')
         ->when(!$user->hasRole(['admin', 'superuser']), function ($q) use ($user) {
@@ -28,9 +30,10 @@ class GuarantorController extends Controller
               });
         })
         ->latest()
-        ->paginate(10);
+        ->paginate($perPage)
+        ->withQueryString();
 
-    return view('penjamin.index', compact('penjamins'));
+    return view('penjamin.index', compact('penjamins', 'perPage'));
     }
 
     /**

@@ -2,13 +2,12 @@
 
 @section('content')
 
-{{-- HEADER --}}
 <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
-    <h1 class="text-2xl font-bold text-gray-800">Data Klien</h1>
+    <h1 class="text-2xl font-bold text-gray-800">Data Dasar Hukum</h1>
 
-    <a href="{{ route('clients.create') }}"
+    <a href="{{ route('pasal.create') }}"
        class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition w-fit">
-        + Tambah Klien
+        + Tambah Dasar Hukum
     </a>
 </div>
 
@@ -27,15 +26,15 @@
 
 {{-- FILTER --}}
 <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
-<!-- SEARCH -->
-<form method="GET" action="{{ route('clients.index') }}" id="searchForm">
+   <!-- SEARCH -->
+    <form method="GET" action="{{ route('pasal.index') }}" id="searchForm">
     <div style="position: relative;">
         <input
             type="text"
             id="searchInput"
             name="search"
             value="{{ request('search') }}"
-            placeholder="Cari nama klien..."
+            placeholder="Cari dasar hukum..."
             class="w-full h-11 rounded-lg
                    border border-blue-500
                    px-4 pr-12 text-sm
@@ -43,7 +42,7 @@
             autocomplete="off"
         >
 
-        <!-- CLEAR BUTTON -->
+    <!-- CLEAR BUTTON -->
         <button
             type="button"
             id="clearBtn"
@@ -60,7 +59,7 @@
         </button>
     </div>
 </form>
-{{-- PER PAGE --}}
+    {{-- PER PAGE --}}
     <form method="GET">
         <input type="hidden" name="search" value="{{ request('search') }}">
         <select name="per_page"
@@ -75,74 +74,75 @@
     </form>
 </div>
 
-{{-- TABLE --}}
+<!-- TABLE -->
 <div class="bg-white rounded-lg shadow overflow-x-auto">
     <table class="min-w-full text-sm">
         <thead class="bg-gray-100">
             <tr>
                 <th class="px-4 py-3 text-left">No</th>
-                <th class="px-4 py-3 text-left">Nama</th>
-                <th class="px-4 py-3 text-left">PK</th>
-                <th class="px-4 py-3 text-left">No Register</th>
-                <th class="px-4 py-3 text-left">JK</th>
-                <th class="px-4 py-3 text-left">Status</th>
-                <th class="px-4 py-3 text-left">Pekerjaan</th>
-                <th class="px-4 py-3 text-left">Ciri Khusus</th>
+                <th class="px-4 py-3 text-left">Klasifikasi Hukum</th>
+                <th class="px-4 py-3 text-left">Nomor Pasal</th>
+                <th class="px-4 py-3 text-left">Daftar Ayat</th>
                 <th class="px-4 py-3 text-center">Aksi</th>
             </tr>
         </thead>
 
         <tbody class="divide-y">
-            @forelse ($clients as $client)
+            @forelse ($pasals as $pasal)
                 <tr class="hover:bg-gray-50">
+
                     <td class="px-4 py-3">
-                        {{ ($clients->currentPage() - 1) * $clients->perPage() + $loop->iteration }}
+                        {{ ($pasals->currentPage() - 1) * $pasals->perPage() + $loop->iteration }}
+                    </td>
+                  <td class="px-4 py-3">
+                        {{ $pasal->judul ?? '-' }}
                     </td>
 
                     <td class="px-4 py-3 font-semibold text-gray-800">
-                        {{ $client->nama }}
-                    </td>
-                    
-                    <td class="px-4 py-3">
-                        {{ $client->user->name ?? '-' }}
+                        Pasal {{ $pasal->nomor_pasal }}
                     </td>
 
+                    {{-- DAFTAR AYAT --}}
                     <td class="px-4 py-3">
-                        {{ $client->no_register }}
+                        @if($pasal->ayats->count())
+
+                            <div class="flex flex-wrap gap-2">
+
+                                @foreach($pasal->ayats->take(3) as $ayat)
+                                    <span class="px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded-full">
+                                        Ayat ({{ $ayat->nomor_ayat }})
+                                    </span>
+                                @endforeach
+
+                                @if($pasal->ayats->count() > 3)
+                                    <span class="px-2 py-1 text-xs bg-gray-200 text-gray-700 rounded-full">
+                                        +{{ $pasal->ayats->count() - 3 }} lainnya
+                                    </span>
+                                @endif
+
+                            </div>
+
+                        @else
+                            <span class="text-gray-400">Belum ada ayat</span>
+                        @endif
                     </td>
 
-                    <td class="px-4 py-3">
-                        {{ $client->jenis_kelamin ?? '-' }}
-                    </td>
-
-                    <td class="px-4 py-3">
-                        {{ $client->status_perkawinan ?? '-' }}
-                    </td>
-
-                    <td class="px-4 py-3">
-                        {{ $client->pekerjaan ?? '-' }}
-                    </td>
-
-                    <td class="px-4 py-3">
-                        {{ \Illuminate\Support\Str::limit($client->ciri_khusus, 30) ?? '-' }}
-                    </td>
-
-                    {{-- AKSI --}}
                     <td class="px-4 py-3 text-center">
                         <div class="flex justify-center gap-3">
-                            <a href="{{ route('clients.show', $client) }}"
+
+                            <a href="{{ route('pasal.show', $pasal) }}"
                                class="text-blue-600 hover:underline">
                                 Detail
                             </a>
 
-                            <a href="{{ route('clients.edit', $client) }}"
+                            <a href="{{ route('pasal.edit', $pasal) }}"
                                class="text-green-600 hover:underline">
                                 Edit
                             </a>
 
                             <form method="POST"
-                                  action="{{ route('clients.destroy', $client) }}"
-                                  onsubmit="return confirm('Hapus data klien ini?')">
+                                  action="{{ route('pasal.destroy', $pasal) }}"
+                                  onsubmit="return confirm('Hapus pasal ini?')">
                                 @csrf
                                 @method('DELETE')
                                 <button type="submit"
@@ -150,14 +150,16 @@
                                     Hapus
                                 </button>
                             </form>
+
                         </div>
                     </td>
+
                 </tr>
             @empty
                 <tr>
-                    <td colspan="8"
+                    <td colspan="5"
                         class="px-6 py-8 text-center text-gray-500">
-                        Data klien belum tersedia
+                        Data pasal belum tersedia
                     </td>
                 </tr>
             @endforelse
@@ -165,10 +167,8 @@
     </table>
 </div>
 
-
-{{-- PAGINATION --}}
 <div class="mt-4">
-    {{ $clients->links() }}
+    {{ $pasals->links() }}
 </div>
 
 <script>
@@ -209,7 +209,7 @@
     function clearSearch() {
         searchInput.value = '';
         toggleClearButton();
-        window.location.href = "{{ route('clients.index') }}";
+        window.location.href = "{{ route('pasal.index') }}";
     }
 
     // 👁️ Tampilkan / sembunyikan tombol X
