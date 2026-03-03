@@ -12,8 +12,9 @@
             + Tambah Penjamin
         </a>
     </div>
-{{-- SEARCH --}}
-<form method="GET" action="{{ route('penjamin.index') }}" class="mb-4">
+    <!-- SEARCH -->
+<div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
+<form method="GET" action="{{ route('penjamin.index') }}" id="searchForm">
     <div style="position: relative;">
         <input
             type="text"
@@ -25,10 +26,10 @@
                    border border-blue-500
                    px-4 pr-12 text-sm
                    focus:outline-none"
-            oninput="toggleClearButton()"
+            autocomplete="off"
         >
 
-        <!-- CLEAR BUTTON -->
+    <!-- CLEAR BUTTON -->
         <button
             type="button"
             id="clearBtn"
@@ -45,7 +46,20 @@
         </button>
     </div>
 </form>
-
+    {{-- PER PAGE --}}
+    <form method="GET">
+        <input type="hidden" name="search" value="{{ request('search') }}">
+        <select name="per_page"
+                onchange="this.form.submit()"
+                class="px-3 py-2 pr-8 border rounded-lg">
+            @foreach([10,15,20,30,50] as $size)
+                <option value="{{ $size }}" {{ $perPage == $size ? 'selected' : '' }}>
+                    {{ $size }}
+                </option>
+            @endforeach
+        </select>
+    </form>
+</div>
     {{-- TABLE --}}
     <div class="bg-white rounded-lg shadow overflow-hidden">
         <table class="w-full border-collapse">
@@ -129,6 +143,43 @@
         input.focus();
     }
 
+    document.addEventListener('DOMContentLoaded', toggleClearButton);
+
+    const searchInput = document.getElementById('searchInput');
+    const clearBtn = document.getElementById('clearBtn');
+    const searchForm = document.getElementById('searchForm');
+
+    let debounceTimer;
+
+    // 🔍 AUTO SEARCH dengan delay 500ms
+    searchInput.addEventListener('input', function () {
+
+        toggleClearButton();
+
+        clearTimeout(debounceTimer);
+
+        debounceTimer = setTimeout(() => {
+            searchForm.submit();
+        }, 500); // delay supaya tidak spam request
+    });
+
+    // ❌ TOMBOL CLEAR
+    function clearSearch() {
+        searchInput.value = '';
+        toggleClearButton();
+        window.location.href = "{{ route('penjamin.index') }}";
+    }
+
+    // 👁️ Tampilkan / sembunyikan tombol X
+    function toggleClearButton() {
+        if (searchInput.value.length > 0) {
+            clearBtn.classList.remove('hidden');
+        } else {
+            clearBtn.classList.add('hidden');
+        }
+    }
+
+    // Saat halaman load
     document.addEventListener('DOMContentLoaded', toggleClearButton);
 </script>
 @endsection

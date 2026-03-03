@@ -27,17 +27,40 @@
 
 {{-- FILTER --}}
 <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
+<!-- SEARCH -->
+<form method="GET" action="{{ route('clients.index') }}" id="searchForm">
+    <div style="position: relative;">
+        <input
+            type="text"
+            id="searchInput"
+            name="search"
+            value="{{ request('search') }}"
+            placeholder="Cari nama klien..."
+            class="w-full h-11 rounded-lg
+                   border border-blue-500
+                   px-4 pr-12 text-sm
+                   focus:outline-none"
+            autocomplete="off"
+        >
 
-    {{-- SEARCH --}}
-    <form method="GET">
-        <input type="text"
-               name="search"
-               value="{{ request('search') }}"
-               placeholder="Cari nama klien..."
-               class="px-3 py-2 border rounded-lg w-64">
-    </form>
-
-    {{-- PER PAGE --}}
+        <!-- CLEAR BUTTON -->
+        <button
+            type="button"
+            id="clearBtn"
+            onclick="clearSearch()"
+            style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%);"
+            class="hidden
+                   h-6 w-6
+                   flex items-center justify-center
+                   rounded-full
+                   text-gray-400
+                   hover:bg-gray-200 hover:text-red-500"
+        >
+            ✕
+        </button>
+    </div>
+</form>
+{{-- PER PAGE --}}
     <form method="GET">
         <input type="hidden" name="search" value="{{ request('search') }}">
         <select name="per_page"
@@ -50,7 +73,6 @@
             @endforeach
         </select>
     </form>
-
 </div>
 
 {{-- TABLE --}}
@@ -149,4 +171,57 @@
     {{ $clients->links() }}
 </div>
 
+<script>
+    function toggleClearButton() {
+        const input = document.getElementById('searchInput');
+        const btn = document.getElementById('clearBtn');
+        btn.classList.toggle('hidden', input.value.trim() === '');
+    }
+
+    function clearSearch() {
+        const input = document.getElementById('searchInput');
+        input.value = '';
+        toggleClearButton();
+        input.focus();
+    }
+
+    document.addEventListener('DOMContentLoaded', toggleClearButton);
+
+    const searchInput = document.getElementById('searchInput');
+    const clearBtn = document.getElementById('clearBtn');
+    const searchForm = document.getElementById('searchForm');
+
+    let debounceTimer;
+
+    // 🔍 AUTO SEARCH dengan delay 500ms
+    searchInput.addEventListener('input', function () {
+
+        toggleClearButton();
+
+        clearTimeout(debounceTimer);
+
+        debounceTimer = setTimeout(() => {
+            searchForm.submit();
+        }, 500); // delay supaya tidak spam request
+    });
+
+    // ❌ TOMBOL CLEAR
+    function clearSearch() {
+        searchInput.value = '';
+        toggleClearButton();
+        window.location.href = "{{ route('clients.index') }}";
+    }
+
+    // 👁️ Tampilkan / sembunyikan tombol X
+    function toggleClearButton() {
+        if (searchInput.value.length > 0) {
+            clearBtn.classList.remove('hidden');
+        } else {
+            clearBtn.classList.add('hidden');
+        }
+    }
+
+    // Saat halaman load
+    document.addEventListener('DOMContentLoaded', toggleClearButton);
+</script>
 @endsection

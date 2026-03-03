@@ -61,8 +61,20 @@
             🧾 Data Penjamin
         </a>
 
-        {{-- MANAJEMEN USER (HANYA ADMIN) --}}
+        {{-- HANYA ADMIN --}}
         @if(auth()->user()->role === 'admin')
+
+        {{-- PASAL --}}
+            <a href="{{ route('pasal.index') }}"
+            class="flex items-center gap-3 px-4 py-2 rounded-xl transition-all duration-200
+            {{ request()->routeIs('pasal.*')
+                    ? 'bg-blue-600 shadow-lg shadow-blue-600/30'
+                    : 'hover:bg-slate-700' }}">
+                
+                📜 Dasar Hukum
+            </a>
+
+        {{-- MANAJEMEN USER --}}
             <a href="{{ route('users.index') }}"
                class="flex items-center gap-3 px-4 py-2 rounded-xl transition-all duration-200
                {{ request()->routeIs('users.*')

@@ -7,6 +7,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\ClientController;
 use App\Http\Controllers\GuarantorController;
+use App\Http\Controllers\PasalController;
 
 /*
 |--------------------------------------------------------------------------
@@ -101,6 +102,10 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
 
     Route::post('/manajemen-user/{user}/reset-password', [UserController::class, 'resetPassword'])
         ->name('users.reset-password');
+
+    // DASAR HUKUM
+    Route::resource('pasal', PasalController::class);
+
 });
 
 /*
