@@ -1,89 +1,135 @@
 <?php
 
 namespace App\Http\Controllers;
+
 use App\Models\Pasal;
 use App\Models\Ayat;
+use App\Models\KlasifikasiHukum;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 
 class PasalController extends Controller
 {
+
     public function index(Request $request)
     {
         $user = Auth::user();
 
-        $query = Pasal::with('user');
+        $query = Pasal::with(['ayats','klasifikasiHukum']);
 
         if (!$user->hasAnyRole(['admin', 'superuser'])) {
             $query->where('user_id', $user->id);
         }
 
         if ($request->filled('search')) {
-            $query->where('judul', 'like', '%' . $request->search . '%');
-        }
-        
-      $perPage = $request->get('per_page', 10);
-
-    $pasals = Pasal::with('ayats')
-        ->when($request->search, function ($query) use ($request) {
-            $query->where('nomor_pasal', 'like', '%' . $request->search . '%')
+            $query->where(function($q) use ($request){
+                $q->where('nomor_pasal', 'like', '%' . $request->search . '%')
                   ->orWhere('judul', 'like', '%' . $request->search . '%');
-        })
-        ->paginate($perPage)
-        ->withQueryString();
+            });
+        }
 
-    return view('pasal.index', compact('pasals', 'perPage'));
+        $perPage = $request->get('per_page', 10);
+
+        $pasals = $query->paginate($perPage)->withQueryString();
+
+        return view('pasal.index', compact('pasals','perPage'));
     }
+
 
     public function create()
     {
-        return view('pasal.create');
+        $klasifikasi = KlasifikasiHukum::all();
+
+        return view('pasal.create', compact('klasifikasi'));
     }
+
 
     public function store(Request $request)
     {
         $request->validate([
+            'nama_klasifikasi' => 'required',
             'nomor_pasal' => 'required',
-            'ayat.*.nomor' => 'required',
-            'ayat.*.isi' => 'required',
+            'ayat.*.nomor_ayat' => 'required',
+            'ayat.*.isi' => 'required'
         ]);
+
+        /*
+        ==========================
+        CEK ATAU BUAT KLASIFIKASI
+        ==========================
+        */
+
+        $klasifikasi = KlasifikasiHukum::firstOrCreate([
+            'nama_klasifikasi' => $request->nama_klasifikasi
+        ]);
+
+        /*
+        ==========================
+        SIMPAN PASAL
+        ==========================
+        */
 
         $pasal = Pasal::create([
-            'nomor_pasal' => $request->nomor_pasal,
-            'judul' => $request->judul,
+            'klasifikasi_hukum_id' => $klasifikasi->id,
+            'nomor_pasal' => $request->nomor_pasal
         ]);
 
-        foreach ($request->ayat as $ayat) {
+        /*
+        ==========================
+        SIMPAN AYAT
+        ==========================
+        */
+
+       if ($request->has('ayat')) {
+
+         foreach ($request->ayat as $ayat) {
+
             Ayat::create([
                 'pasal_id' => $pasal->id,
-                'nomor_ayat' => $ayat['nomor'],
-                'isi' => $ayat['isi'],
+                'nomor_ayat' => $ayat['nomor_ayat'],
+                'isi' => $ayat['isi']
             ]);
+
         }
 
+}
+
         return redirect()->route('pasal.index')
-            ->with('success', 'Pasal berhasil ditambahkan');
+            ->with('success', 'Data berhasil disimpan');
     }
 
-    // ✅ EDIT
+
+    public function show($id)
+    {
+        $pasal = Pasal::with(['ayats','klasifikasiHukum'])->findOrFail($id);
+
+        return view('pasal.show', compact('pasal'));
+    }
+
+
     public function edit($id)
     {
         $pasal = Pasal::with('ayats')->findOrFail($id);
-        return view('pasal.edit', compact('pasal'));
+        $klasifikasi = KlasifikasiHukum::all();
+
+        return view('pasal.edit', compact('pasal','klasifikasi'));
     }
 
-    // ✅ UPDATE
+
     public function update(Request $request, $id)
     {
+
         $request->validate([
+            'klasifikasi_hukum_id' => 'required',
             'nomor_pasal' => 'required',
-            'ayat.*.nomor' => 'required',
+            'ayat.*.nomor_ayat' => 'required',
             'ayat.*.isi' => 'required',
         ]);
 
         $pasal = Pasal::findOrFail($id);
 
         $pasal->update([
+            'klasifikasi_hukum_id' => $request->klasifikasi_hukum_id,
             'nomor_pasal' => $request->nomor_pasal,
             'judul' => $request->judul,
         ]);
@@ -92,42 +138,44 @@ class PasalController extends Controller
 
         foreach ($request->ayat as $ayatData) {
 
-            // Jika ada ID → update ayat lama
             if (isset($ayatData['id'])) {
+
                 $ayat = Ayat::find($ayatData['id']);
+
                 $ayat->update([
-                    'nomor_ayat' => $ayatData['nomor'],
+                    'nomor_ayat' => $ayatData['nomor_ayat'],
                     'isi' => $ayatData['isi'],
                 ]);
+
                 $existingAyatIds[] = $ayat->id;
-            } 
-            // Jika tidak ada ID → ayat baru
-            else {
+
+            } else {
+
                 $ayat = Ayat::create([
                     'pasal_id' => $pasal->id,
-                    'nomor_ayat' => $ayatData['nomor'],
+                    'nomor_ayat' => $ayatData['nomor_ayat'],
                     'isi' => $ayatData['isi'],
                 ]);
+
                 $existingAyatIds[] = $ayat->id;
+
             }
+
         }
 
-        // Hapus ayat yang tidak ada di form
         $pasal->ayats()->whereNotIn('id', $existingAyatIds)->delete();
 
         return redirect()->route('pasal.index')
             ->with('success', 'Pasal berhasil diperbarui');
+
     }
 
-    public function show($id)
-    {
-        $pasal = Pasal::with('ayats')->findOrFail($id);
-        return view('pasal.show', compact('pasal'));
-    }
 
     public function destroy($id)
     {
         Pasal::findOrFail($id)->delete();
+
         return back()->with('success', 'Pasal berhasil dihapus');
     }
+
 }

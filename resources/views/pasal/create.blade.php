@@ -2,10 +2,14 @@
 
 @section('content')
 
-<div class="max-w-4xl mx-auto bg-white p-6 rounded shadow">
+<div class="max-w-5xl mx-auto bg-white p-6 rounded shadow">
 
-    <h2 class="text-2xl font-bold mb-6">Tambah Dasar Hukum</h2>
+    <h2 class="text-2xl font-bold mb-6">
+        Tambah Dasar Hukum
+    </h2>
 
+
+    {{-- ERROR VALIDATION --}}
     @if ($errors->any())
         <div class="bg-red-100 text-red-700 p-3 rounded mb-4">
             <ul class="list-disc pl-5">
@@ -16,166 +20,294 @@
         </div>
     @endif
 
+
     <form action="{{ route('pasal.store') }}" method="POST">
         @csrf
 
-        {{-- DATA PASAL --}}
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-            <div>
-                <label class="font-semibold">Klasifikas Hukum</label>
-                <input type="text"
-                       name="judul"
-                       value="{{ old('judul') }}"
-                       class="w-full border rounded px-3 py-2 mt-1">
-            </div>
 
-            <div>
-                <label class="font-semibold">Nomor Pasal</label>
-                <input type="text"
-                       name="nomor_pasal"
-                       value="{{ old('nomor_pasal') }}"
-                       class="w-full border rounded px-3 py-2 mt-1"
-                       required>
-            </div>
+        {{-- =====================================
+            KLASIFIKASI HUKUM
+        ====================================== --}}
+        <div class="mb-6">
+
+            <label class="font-semibold">
+                Klasifikasi Hukum
+            </label>
+
+            <input
+                type="text"
+                name="nama_klasifikasi"
+                value="{{ old('nama_klasifikasi') }}"
+                placeholder="Contoh: KUHP / UU RI"
+                class="w-full border rounded px-3 py-2 mt-1"
+                required
+            >
+
         </div>
+
 
         <hr class="my-6">
 
-        {{-- AYAT --}}
-        <div id="ayat-wrapper">
 
-            <div class="ayat-item border rounded p-4 mb-4">
+        {{-- =====================================
+            WRAPPER PASAL
+        ====================================== --}}
+        <div id="pasal-wrapper">
 
-                <h3 class="ayat-title font-bold text-lg mb-3">
-                    Ayat 1
+            {{-- PASAL PERTAMA --}}
+            <div class="pasal-item border rounded p-4 mb-6">
+
+                <h3 class="pasal-title font-bold text-lg mb-3">
+                    Pasal 1
                 </h3>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <input
+                    type="text"
+                    name="nomor_pasal"
+                    placeholder="Nomor Pasal"
+                    class="w-full border rounded px-3 py-2 mb-4"
+                    required
+                >
 
-                    <div>
-                        <label class="font-semibold">Nomor Ayat</label>
-                        <input type="text"
-                               name="ayat[0][nomor]"
-                               class="w-full border rounded px-3 py-2 mt-1"
-                               required>
-                    </div>
 
-                    <div class="md:col-span-2">
-                        <label class="font-semibold">Isi Ayat</label>
-                        <textarea name="ayat[0][isi]"
-                                  rows="3"
-                                  class="w-full border rounded px-3 py-2 mt-1"
-                                  required></textarea>
+                {{-- AYAT WRAPPER --}}
+                <div class="ayat-wrapper">
+
+                    <div class="ayat-item border rounded p-3 mb-3">
+
+                        <h4 class="ayat-title font-semibold mb-2">
+                            Ayat 1
+                        </h4>
+
+                        <input
+                            type="text"
+                            name="pasal[0][ayat][0][nomor_ayat]"
+                            placeholder="Nomor Ayat"
+                            class="w-full border rounded px-3 py-2 mb-2"
+                            required
+                        >
+
+                        <textarea
+                            name="pasal[0][ayat][0][isi]"
+                            rows="3"
+                            placeholder="Isi Ayat"
+                            class="w-full border rounded px-3 py-2"
+                            required
+                        ></textarea>
+
                     </div>
 
                 </div>
 
+
+                {{-- BUTTON TAMBAH AYAT --}}
+                <button
+                    type="button"
+                    onclick="tambahAyat(this)"
+                    class="mt-3 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded"
+                >
+                    + Tambah Ayat
+                </button>
+
             </div>
 
         </div>
 
-        {{-- BUTTON TAMBAH AYAT --}}
-        <button type="button"
-                onclick="tambahAyat()"
-                class="mb-6 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded">
-            + Tambah Ayat
+
+        {{-- BUTTON TAMBAH PASAL --}}
+        <button
+            type="button"
+            onclick="tambahPasal()"
+            class="mb-6 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded"
+        >
+            + Tambah Pasal
         </button>
 
-        {{-- ACTION BUTTON --}}
-        <div class="flex flex-wrap gap-4 items-center">
 
-            <button type="submit"
-                    class="bg-green-600 hover:bg-green-700 text-white px-5 py-2 rounded">
+        {{-- ACTION BUTTON --}}
+        <div class="flex gap-4">
+
+            <button
+                type="submit"
+                class="bg-green-600 hover:bg-green-700 text-white px-5 py-2 rounded"
+            >
                 Simpan
             </button>
 
-            <a href="{{ route('pasal.index') }}"
-               class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300">
+            <a
+                href="{{ route('pasal.index') }}"
+                class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
+            >
                 Kembali
             </a>
 
         </div>
 
     </form>
+
 </div>
 
 
-<script>
-let index = 1;
 
-function tambahAyat(){
+{{-- =====================================
+    JAVASCRIPT DINAMIS
+===================================== --}}
+<script>
+
+let pasalIndex = 1;
+
+
+/* =================================
+   TAMBAH PASAL
+================================= */
+function tambahPasal(){
 
     let html = `
-    <div class="ayat-item border rounded p-4 mb-4">
+    <div class="pasal-item border rounded p-4 mb-6">
 
-        <h3 class="ayat-title font-bold text-lg mb-3"></h3>
+        <h3 class="pasal-title font-bold text-lg mb-3">
+            Pasal ${pasalIndex + 1}
+        </h3>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <input
+            type="text"
+            name="pasal[${pasalIndex}][nomor_pasal]"
+            placeholder="Nomor Pasal"
+            class="w-full border rounded px-3 py-2 mb-4"
+            required
+        >
 
-            <div>
-                <label class="font-semibold">Nomor Ayat</label>
-                <input type="text"
-                       name="ayat[${index}][nomor]"
-                       class="w-full border rounded px-3 py-2 mt-1"
-                       required>
-            </div>
+        <div class="ayat-wrapper">
 
-            <div class="md:col-span-2">
-                <label class="font-semibold">Isi Ayat</label>
-                <textarea name="ayat[${index}][isi]"
-                          rows="3"
-                          class="w-full border rounded px-3 py-2 mt-1"
-                          required></textarea>
+            <div class="ayat-item border rounded p-3 mb-3">
+
+                <h4 class="ayat-title font-semibold mb-2">
+                    Ayat 1
+                </h4>
+
+                <input
+                    type="text"
+                    name="pasal[${pasalIndex}][ayat][0][nomor_ayat]"
+                    placeholder="Nomor Ayat"
+                    class="w-full border rounded px-3 py-2 mb-2"
+                    required
+                >
+
+                <textarea
+                    name="pasal[${pasalIndex}][ayat][0][isi]"
+                    rows="3"
+                    placeholder="Isi Ayat"
+                    class="w-full border rounded px-3 py-2"
+                    required
+                ></textarea>
+
             </div>
 
         </div>
 
-        <button type="button"
-                onclick="hapusAyat(this)"
-                class="mt-4 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded">
-            Hapus
+        <button
+            type="button"
+            onclick="tambahAyat(this)"
+            class="mt-3 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded"
+        >
+            + Tambah Ayat
+        </button>
+
+        <button
+            type="button"
+            onclick="hapusPasal(this)"
+            class="mt-3 ml-3 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded"
+        >
+            Hapus Pasal
         </button>
 
     </div>
     `;
 
-    document.getElementById('ayat-wrapper')
+    document
+        .getElementById('pasal-wrapper')
         .insertAdjacentHTML('beforeend', html);
 
-    renumberAyat();
+    pasalIndex++;
+
 }
 
+
+
+/* =================================
+   TAMBAH AYAT
+================================= */
+function tambahAyat(btn){
+
+    let pasal = btn.closest('.pasal-item');
+    let wrapper = pasal.querySelector('.ayat-wrapper');
+
+    let ayatIndex = wrapper.children.length;
+
+    let pasalIndex = pasal
+        .querySelector('input')
+        .name.match(/\d+/)[0];
+
+    let html = `
+    <div class="ayat-item border rounded p-3 mb-3">
+
+        <h4 class="ayat-title font-semibold mb-2">
+            Ayat ${ayatIndex + 1}
+        </h4>
+
+        <input
+            type="text"
+            name="pasal[${pasalIndex}][ayat][${ayatIndex}][nomor_ayat]"
+            placeholder="Nomor Ayat"
+            class="w-full border rounded px-3 py-2 mb-2"
+            required
+        >
+
+        <textarea
+            name="pasal[${pasalIndex}][ayat][${ayatIndex}][isi]"
+            rows="3"
+            placeholder="Isi Ayat"
+            class="w-full border rounded px-3 py-2"
+            required
+        ></textarea>
+
+        <button
+            type="button"
+            onclick="hapusAyat(this)"
+            class="mt-2 bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded"
+        >
+            Hapus Ayat
+        </button>
+
+    </div>
+    `;
+
+    wrapper.insertAdjacentHTML('beforeend', html);
+
+}
+
+
+
+/* =================================
+   HAPUS PASAL
+================================= */
+function hapusPasal(btn){
+
+    btn.closest('.pasal-item').remove();
+
+}
+
+
+
+/* =================================
+   HAPUS AYAT
+================================= */
 function hapusAyat(btn){
+
     btn.closest('.ayat-item').remove();
-    renumberAyat();
+
 }
 
-/* =========================
-   AUTO RENUMBER AYAT
-========================= */
-function renumberAyat(){
-
-    const items = document.querySelectorAll('.ayat-item');
-
-    items.forEach((item, i) => {
-
-        item.querySelector('.ayat-title')
-            .innerText = 'Ayat ' + (i + 1);
-
-        item.querySelectorAll('input, textarea')
-            .forEach(el => {
-                if (el.name) {
-                    el.name = el.name.replace(
-                        /ayat\[\d+\]/,
-                        `ayat[${i}]`
-                    );
-                }
-            });
-
-    });
-
-    index = items.length;
-}
 </script>
 
 @endsection
