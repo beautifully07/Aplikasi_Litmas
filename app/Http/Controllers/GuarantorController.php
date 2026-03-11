@@ -10,57 +10,69 @@ use Carbon\Carbon;
 class GuarantorController extends Controller
 {
 
-    // Index
+    /**
+     * INDEX
+     */
     public function index(Request $request)
     {
-    $user = auth()->user();
-    $query = Guarantor::with('client');
-     $perPage = $request->get('per_page', 10);
+        $user = auth()->user();
+        $perPage = $request->get('per_page', 10);
 
-    $penjamins = Guarantor::with('client')
-        ->when(!$user->hasRole(['admin', 'superuser']), function ($q) use ($user) {
-            $q->whereHas('client', function ($qc) use ($user) {
-                $qc->where('user_id', $user->id);
-            });
-        })
-        ->when($request->search, function ($q) use ($request) {
-            $q->where('nama', 'like', '%' . $request->search . '%')
-              ->orWhereHas('client', function ($qc) use ($request) {
-                  $qc->where('nama', 'like', '%' . $request->search . '%');
-              });
-        })
-        ->latest()
-        ->paginate($perPage)
-        ->withQueryString();
+        $penjamins = Guarantor::with('client')
 
-    return view('penjamin.index', compact('penjamins', 'perPage'));
+            // Batasi data jika bukan admin / superuser
+            ->when(!$user->hasRole(['admin', 'superuser']), function ($q) use ($user) {
+                $q->whereHas('client', function ($qc) use ($user) {
+                    $qc->where('user_id', $user->id);
+                });
+            })
+
+            // SEARCH
+            ->when($request->search, function ($q) use ($request) {
+                $search = $request->search;
+
+                $q->where(function ($query) use ($search) {
+                    $query->where('nama', 'like', "%$search%")
+                        ->orWhereHas('client', function ($qc) use ($search) {
+                            $qc->where('nama', 'like', "%$search%");
+                        });
+                });
+            })
+
+            ->latest()
+            ->paginate($perPage)
+            ->withQueryString();
+
+        return view('penjamin.index', compact('penjamins', 'perPage'));
     }
+
 
     /**
      * FORM TAMBAH
-     * tampilkan halaman + dropdown klien
      */
     public function create()
     {
-    $user = auth()->user();
+        $user = auth()->user();
 
-    // ADMIN & SUPERUSER → lihat semua client
-    if ($user->hasRole(['admin', 'superuser'])) {
-        $clients = Client::orderBy('nama')->get();
-    }
-    // USER → hanya client miliknya
-    else {
-        $clients = Client::where('user_id', $user->id)
-            ->orderBy('nama')
-            ->get();
-    }
+        // ADMIN & SUPERUSER → semua client
+        if ($user->hasRole(['admin', 'superuser'])) {
 
-    return view('penjamin.create', compact('clients'));
+            $clients = Client::orderBy('nama')->get();
+
+        } else {
+
+            // USER → hanya client miliknya
+            $clients = Client::where('user_id', $user->id)
+                ->orderBy('nama')
+                ->get();
+        }
+
+        return view('penjamin.create', compact('clients'));
     }
 
 
     /**
-     * SIMPAN BANYAK PENJAMIN SEKALIGUS
+     * SIMPAN PENJAMIN
      */
     public function store(Request $request)
     {
@@ -72,17 +84,19 @@ class GuarantorController extends Controller
         ]);
 
         $client = Client::findOrFail($request->client_id);
+        $user = auth()->user();
 
-        // Jika user biasa, pastikan client miliknya
-        if (!in_array(auth()->user()->role, ['admin', 'superuser'])) {
-            if ($client->user_id !== auth()->id()) {
+        // Jika user biasa → pastikan client miliknya
+        if (!$user->hasRole(['admin', 'superuser'])) {
+
+            if ($client->user_id !== $user->id) {
                 abort(403, 'Tidak berhak menambahkan penjamin untuk client ini');
             }
         }
 
         foreach ($request->penjamin as $i => $data) {
 
-            // VALIDASI UMUR >= 18
+            // Validasi umur minimal 18
             $umur = Carbon::parse($data['tanggal_lahir'])->age;
 
             if ($umur < 18) {
@@ -94,7 +108,7 @@ class GuarantorController extends Controller
             }
 
             Guarantor::create([
-                'user_id' => auth()->id(),
+                'user_id' => $user->id,
                 'client_id' => $request->client_id,
                 'no_kk' => $data['no_kk'] ?? null,
                 'nama' => $data['nama'],
@@ -117,76 +131,66 @@ class GuarantorController extends Controller
 
 
     /**
-     * FORM EDIT (1 klien → banyak penjamin)
+     * FORM EDIT
      */
     public function edit(Guarantor $penjamin)
-{
-    $user = auth()->user();
+    {
+        $user = auth()->user();
 
-    if (
-        !$user->hasRole(['admin', 'superuser']) &&
-        $penjamin->user_id !== $user->id
-    ) {
-        abort(403);
+        if (
+            !$user->hasRole(['admin', 'superuser']) &&
+            $penjamin->client->user_id !== $user->id
+        ) {
+            abort(403);
+        }
+
+        $clients = $user->hasRole(['admin', 'superuser'])
+            ? Client::orderBy('nama')->get()
+            : Client::where('user_id', $user->id)->orderBy('nama')->get();
+
+        return view('penjamin.edit', compact('penjamin', 'clients'));
     }
-
-    $clients = $user->hasRole(['admin', 'superuser'])
-        ? Client::orderBy('nama')->get()
-        : Client::where('user_id', $user->id)->orderBy('nama')->get();
-
-    return view('penjamin.edit', compact('penjamin', 'clients'));
-}
 
 
     /**
-     * UPDATE MASSAL (create + update + delete)
+     * UPDATE
      */
     public function update(Request $request, Guarantor $penjamin)
-{
-    $user = auth()->user();
-
-    if (
-        !$user->hasRole(['admin', 'superuser']) &&
-        $penjamin->user_id !== $user->id
-    ) {
-        abort(403);
-    }
-
-    $request->validate([
-        'client_id' => 'required|exists:clients,id',
-        'nama' => 'required|string',
-        'tanggal_lahir' => 'required|date',
-        'hubungan_keluarga' => 'required|in:Ayah Kandung,Ibu Kandung,Saudara Kandung,Suami,Istri'
-    ]);
-
-    $penjamin->update([
-        'client_id' => $request->client_id,
-        'no_kk' => $request->no_kk,
-        'nama' => $request->nama,
-        'tempat_lahir' => $request->tempat_lahir,
-        'tanggal_lahir' => $request->tanggal_lahir,
-        'agama' => $request->agama,
-        'suku' => $request->suku,
-        'kewarganegaraan' => $request->kewarganegaraan,
-        'pendidikan_terakhir' => $request->pendidikan_terakhir,
-        'pekerjaan' => $request->pekerjaan,
-        'alamat' => $request->alamat,
-        'hubungan_keluarga' => $request->hubungan_keluarga,
-    ]);
-
-    return redirect()
-        ->route('penjamin.index')
-        ->with('success', 'Data penjamin berhasil diperbarui');
-}
-
-
-    /**
-     * LIST PENJAMIN PER KLIEN (optional untuk AJAX tabel)
-     */
-    public function byClient($client_id)
     {
-        $client = Client::with('guarantors')->findOrFail($client_id);
-        return view('penjamin.partials.table', compact('client'));
+        $user = auth()->user();
+
+        if (
+            !$user->hasRole(['admin', 'superuser']) &&
+            $penjamin->client->user_id !== $user->id
+        ) {
+            abort(403);
+        }
+
+        $request->validate([
+            'client_id' => 'required|exists:clients,id',
+            'nama' => 'required|string',
+            'tanggal_lahir' => 'required|date',
+            'hubungan_keluarga' => 'required|in:Ayah Kandung,Ibu Kandung,Saudara Kandung,Suami,Istri'
+        ]);
+
+        $penjamin->update([
+            'client_id' => $request->client_id,
+            'no_kk' => $request->no_kk,
+            'nama' => $request->nama,
+            'tempat_lahir' => $request->tempat_lahir,
+            'tanggal_lahir' => $request->tanggal_lahir,
+            'agama' => $request->agama,
+            'suku' => $request->suku,
+            'kewarganegaraan' => $request->kewarganegaraan,
+            'pendidikan_terakhir' => $request->pendidikan_terakhir,
+            'pekerjaan' => $request->pekerjaan,
+            'alamat' => $request->alamat,
+            'hubungan_keluarga' => $request->hubungan_keluarga,
+        ]);
+
+        return redirect()
+            ->route('penjamin.index')
+            ->with('success', 'Data penjamin berhasil diperbarui');
     }
 
 
@@ -194,16 +198,31 @@ class GuarantorController extends Controller
      * DETAIL PENJAMIN
      */
     public function show(Guarantor $penjamin)
-{
-    $penjamin->load('client'); // agar relasi aman dipakai
+    {
+        $penjamin->load('client');
 
-    return view('penjamin.show', compact('penjamin'));
-}
+        return view('penjamin.show', compact('penjamin'));
+    }
 
-    // Hapus
+
+    /**
+     * LIST PENJAMIN PER CLIENT
+     */
+    public function byClient($client_id)
+    {
+        $client = Client::with('guarantors')->findOrFail($client_id);
+
+        return view('penjamin.partials.table', compact('client'));
+    }
+
+
+    /**
+     * HAPUS
+     */
     public function destroy($id)
     {
         $penjamin = Guarantor::findOrFail($id);
+
         $penjamin->delete();
 
         return redirect()
