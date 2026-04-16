@@ -21,6 +21,7 @@ return new class extends Migration
             $table->date('tanggal_litmas')->nullable();
             $table->string('nip')->nullable(); // NIP Pembimbing
             $table->string('jabatan')->nullable(); // Jabatan Pembimbing
+            $table->text('perkara')->nullable(); // Jabatan Pembimbing
 
             // ================================
             // DATA KEGIATAN PENELITIAN

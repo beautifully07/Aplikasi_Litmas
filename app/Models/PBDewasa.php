@@ -20,6 +20,7 @@ class PBDewasa extends Model
     'tanggal_litmas',
     'nip',
     'jabatan',
+    'perkara',
 
     // ================================
     // KEGIATAN PENELITIAN
