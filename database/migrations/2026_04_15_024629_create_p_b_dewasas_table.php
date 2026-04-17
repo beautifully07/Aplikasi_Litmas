@@ -14,14 +14,33 @@ return new class extends Migration
     {
         Schema::create('p_b_dewasas', function (Blueprint $table) {
             $table->id();
+
+            // ==============================
+            // NOTA DINAS
+            // ==============================
+            $table->string('no_nota_dinas')->nullable();
+            $table->string('tanggal_nota_dinas')->nullable();
+            $table->text('asal_surat_rujukan')->nullable(); // Rutan Kelas IIIB
+            $table->string('no_surat_rujukan')->nullable(); // WP.13.PAS
+            $table->date('tgl_surat_rujukan')->nullable(); 
+            $table->string('no_reg_rutan')->nullable(); // Bisa Rutan, Lapas
+
+            // ===============================
+            // COVER
+            // ===============================
+            $table->string('nip')->nullable(); // NIP Pembimbing
+            $table->string('jabatan')->nullable(); // Jabatan Pembimbing
+            
             // ================================
             // DATA UTAMA LITMAS
             // ================================
             $table->string('no_litmas')->nullable();
             $table->date('tanggal_litmas')->nullable();
-            $table->string('nip')->nullable(); // NIP Pembimbing
-            $table->string('jabatan')->nullable(); // Jabatan Pembimbing
-            $table->text('perkara')->nullable(); // Jabatan Pembimbing
+            $table->text('perkara')->nullable();
+            $table->string('no_putusan_pengadilan')->nullable();
+            $table->date('tanggal_putusan_pengadilan')->nullable();
+            $table->string('lama_pidana_denda')->nullable();
+            
 
             // ================================
             // DATA KEGIATAN PENELITIAN

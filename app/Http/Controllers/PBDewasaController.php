@@ -1,30 +1,26 @@
 <?php
 
 namespace App\Http\Controllers;
-use App\Models\PBDewasa;
+
 use Illuminate\Http\Request;
+use App\Models\PBDewasa;
 use App\Models\Client;
 use App\Models\KlasifikasiHukum;
 use App\Models\Family;
-use App\Models\User;
-
 
 class PBDewasaController extends Controller
 {
-    /**
-     * Form create
-     */
     public function create()
     {
-        $clients = Client::all(); // dropdown client
-        $klasifikasi = KlasifikasiHukum::all(); // dropdown klasifikasi hukum
+        $clients = Client::all();
+        $klasifikasi = KlasifikasiHukum::all();
 
         return view('litmas.create', compact('clients', 'klasifikasi'));
     }
 
-    /**
-     * Get data client (AJAX untuk auto fill)
-     */
+    // =========================
+    // AUTO FILL CLIENT
+    // =========================
     public function getClient($id)
     {
         $client = Client::with(['user', 'guarantor'])->findOrFail($id);
@@ -37,9 +33,9 @@ class PBDewasaController extends Controller
         ]);
     }
 
-    /**
-     * Store data Litmas + Family
-     */
+    // =========================
+    // STORE
+    // =========================
     public function store(Request $request)
     {
         $request->validate([
@@ -47,16 +43,28 @@ class PBDewasaController extends Controller
             'klasifikasi_hukums_id' => 'required',
         ]);
 
-        // =========================
-        // SIMPAN DATA LITMAS
-        // =========================
         $litmas = PBDewasa::create([
-            'no_litmas' => $request->no_litmas,
-            'tanggal_litmas' => $request->tanggal_litmas,
+            // NOTA DINAS
+            'no_nota_dinas' => $request->no_nota_dinas,
+            'tanggal_nota_dinas' => $request->tanggal_nota_dinas,
+            'asal_surat_rujukan' => $request->asal_surat_rujukan,
+            'no_surat_rujukan' => $request->no_surat_rujukan,
+            'tgl_surat_rujukan' => $request->tgl_surat_rujukan,
+            'no_reg_rutan' => $request->no_reg_rutan,
+
+            // COVER
             'nip' => $request->nip,
             'jabatan' => $request->jabatan,
-            'perkara' => $request->perkara,
 
+            // DATA UTAMA
+            'no_litmas' => $request->no_litmas,
+            'tanggal_litmas' => $request->tanggal_litmas,
+            'perkara' => $request->perkara,
+            'no_putusan_pengadilan' => $request->no_putusan_pengadilan,
+            'tanggal_putusan_pengadilan' => $request->tanggal_putusan_pengadilan,
+            'lama_pidana_denda' => $request->lama_pidana_denda,
+
+            // RELASI
             'client_id' => $request->client_id,
             'user_id' => $request->user_id,
             'guarantor_id' => $request->guarantor_id,
@@ -64,7 +72,7 @@ class PBDewasaController extends Controller
         ]);
 
         // =========================
-        // SIMPAN DATA FAMILY (KELUARGA)
+        // FAMILY
         // =========================
         if ($request->family) {
             foreach ($request->family as $item) {
@@ -81,12 +89,12 @@ class PBDewasaController extends Controller
         return redirect()->route('litmas.index')->with('success', 'Data berhasil disimpan');
     }
 
-    /**
-     * Edit
-     */
+    // =========================
+    // EDIT
+    // =========================
     public function edit($id)
     {
-        $litmas = PBDewasa::with('client')->findOrFail($id);
+        $litmas = PBDewasa::findOrFail($id);
         $clients = Client::all();
         $klasifikasi = KlasifikasiHukum::all();
         $families = Family::where('client_id', $litmas->client_id)->get();
@@ -94,16 +102,16 @@ class PBDewasaController extends Controller
         return view('litmas.edit', compact('litmas', 'clients', 'klasifikasi', 'families'));
     }
 
-    /**
-     * Update
-     */
+    // =========================
+    // UPDATE
+    // =========================
     public function update(Request $request, $id)
     {
         $litmas = PBDewasa::findOrFail($id);
 
         $litmas->update($request->all());
 
-        // update family (hapus lama → insert ulang biar simple)
+        // reset family
         Family::where('client_id', $request->client_id)->delete();
 
         if ($request->family) {
@@ -121,13 +129,12 @@ class PBDewasaController extends Controller
         return redirect()->route('litmas.index')->with('success', 'Data berhasil diupdate');
     }
 
-    /**
-     * Delete
-     */
+    // =========================
+    // DELETE
+    // =========================
     public function destroy($id)
     {
-        $litmas = PBDewasa::findOrFail($id);
-        $litmas->delete();
+        PBDewasa::findOrFail($id)->delete();
 
         return back()->with('success', 'Data berhasil dihapus');
     }

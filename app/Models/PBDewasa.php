@@ -14,13 +14,30 @@ class PBDewasa extends Model
     protected $fillable = [
 
     // ================================
+    // NOTA DINAS
+    // ================================
+    'no_nota_dinas',
+    'tanggal_nota_dinas',
+    'asal_surat_rujukan',
+    'no_surat_rujukan',
+    'tgl_surat_rujukan',
+    'no_reg_rutan',
+
+    // ================================
+    // COVER
+    // ================================
+    'nip',
+    'jabatan',
+
+    // ================================
     // DATA UTAMA LITMAS
     // ================================
     'no_litmas',
     'tanggal_litmas',
-    'nip',
-    'jabatan',
     'perkara',
+    'no_putusan_pengadilan',
+    'tanggal_putusan_pengadilan',
+    'lama_pidana_denda',
 
     // ================================
     // KEGIATAN PENELITIAN
