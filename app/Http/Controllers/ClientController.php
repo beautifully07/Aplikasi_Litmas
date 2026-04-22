@@ -60,7 +60,6 @@ class ClientController extends Controller
 
         $rules = [
             'nama'             => 'required|string|max:255',
-            'no_register'      => 'required|unique:clients,no_register',
             'tempat_lahir'     => 'nullable|string|max:255',
             'tanggal_lahir'    => 'nullable|date_format:d-m-Y',
             'jenis_kelamin'    => 'required|in:L,P',
@@ -159,7 +158,6 @@ class ClientController extends Controller
 
         $rules = [
             'nama'              => 'required|string|max:255',
-            'no_register'       => 'required|unique:clients,no_register,' . $client->id,
             'tempat_lahir'      => 'nullable|string|max:255',
             'tanggal_lahir'     => 'nullable|date_format:d-m-Y',
             'jenis_kelamin'     => 'required|in:L,P',

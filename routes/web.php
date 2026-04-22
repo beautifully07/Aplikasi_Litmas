@@ -66,9 +66,14 @@ Route::middleware('auth')->group(function () {
     Route::get('/litmas/form', [LitmasController::class, 'form'])->name('litmas.form');
 
     Route::get('/litmas/{jenis}', [LitmasController::class, 'pilihJenis'])
+    ->where('jenis', 'anak|dewasa|awal')
     ->name('litmas.jenis');
 
+    Route::get('ajax/penjamin/{client}', [GuarantorController::class, 'ajaxByClient']);
+
     Route::post('/litmas/preview', [LitmasController::class, 'preview'])->name('litmas.preview');
+
+    Route::get('/ajax/keluarga/{client}', [LitmasController::class, 'getKeluarga']);
 });
 
 // ========================

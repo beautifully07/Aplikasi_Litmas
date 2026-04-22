@@ -229,4 +229,11 @@ class GuarantorController extends Controller
             ->route('penjamin.index')
             ->with('success', 'Data penjamin berhasil dihapus');
     }
+
+    public function ajaxByClient($client_id)
+{
+    $penjamin = \App\Models\Guarantor::where('client_id', $client_id)->get();
+
+    return response()->json($penjamin);
+}
 }

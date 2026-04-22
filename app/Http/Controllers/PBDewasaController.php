@@ -12,7 +12,7 @@ class PBDewasaController extends Controller
 {
     public function create()
     {
-        $clients = Client::all();
+        $clients = Client::with('user')->get();
         $klasifikasi = KlasifikasiHukum::all();
 
         return view('litmas.create', compact('clients', 'klasifikasi'));

@@ -3,6 +3,10 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use App\Models\Client;
+use App\Models\Guarantor;
+use App\Models\Pasal;
 
 class LitmasController extends Controller
 {
@@ -105,18 +109,94 @@ class LitmasController extends Controller
             ->with('success', 'Litmas berhasil dihapus');
     }
 
-    public function form(Request $request)
+public function form(Request $request)
 {
     $jenis = $request->jenis_litmas;
     $kategori = $request->kategori;
 
-    return view('litmas.form', compact('jenis', 'kategori'));
+    $user = Auth::user();
+
+    // ======================
+    // CLIENT
+    // ======================
+    $clients = Client::query();
+
+    if (!$user->hasAnyRole(['admin', 'superuser'])) {
+        $clients->where('user_id', $user->id);
+    }
+
+    $clients = $clients->get();
+
+    // ======================
+    // PENJAMIN
+    // ======================
+    $penjamins = Guarantor::query();
+
+    if (!$user->hasAnyRole(['admin', 'superuser'])) {
+        $penjamins->where('user_id', $user->id);
+    }
+
+    $penjamins = $penjamins->get();
+
+    // ======================
+    // PASAL
+    // ======================
+    $pasals = Pasal::with('klasifikasiHukum')->get();
+
+    // ======================
+    // VIEW DINAMIS
+    // ======================
+    $view = 'litmas.form_default'; // fallback
+
+    if ($jenis == 'dewasa' && $kategori == 'pembebasan_bersyarat') {
+        $view = 'litmas.form_PBDewasa';
+    } elseif ($jenis == 'dewasa' && $kategori == 'cuti_bersyarat') {
+        $view = 'litmas.form_CBDewasa';
+    } elseif ($jenis == 'anak' && $kategori == 'pembebasan_bersyarat') {
+        $view = 'litmas.form_PBAnak';
+    } elseif ($jenis == 'anak' && $kategori == 'cuti_bersyarat') {
+        $view = 'litmas.form_CBAnak';
+    }
+
+    return view($view, compact(
+        'jenis',
+        'kategori',
+        'clients',
+        'penjamins',
+        'pasals',
+        'user'
+    ));
 }
 
 public function preview(Request $request)
 {
-    $data = $request->all();
+    $client = Client::find($request->client_id);
+    $penjamin = Guarantor::find($request->penjamin_id);
+    $pasal = Pasal::with('ayats','klasifikasiHukum')->find($request->pasal_id);
 
-    return view('litmas.preview', compact('data'));
+    return view('litmas.preview', compact('client','penjamin','pasal'));
+}
+
+public function getKeluarga($clientId)
+{
+    $data = Guarantor::where('client_id', $clientId)
+        ->select(
+            'id',
+            'nama',
+            'jenis',
+            'tempat_lahir',
+            'tanggal_lahir',
+            'agama',
+            'bangsa',
+            'suku',
+            'kewarganegaraan',
+            'pendidikan',
+            'pekerjaan',
+            'alamat',
+            'hubungan'
+        )
+        ->get();
+
+    return response()->json($data);
 }
 }

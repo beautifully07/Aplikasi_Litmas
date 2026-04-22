@@ -32,7 +32,8 @@ return new class extends Migration
                 'Ibu Kandung',
                 'Saudara Kandung',
                 'Suami',
-                'Istri'
+                'Istri',
+                'Anak'
             ]);
             $table->integer('usia')->nullable();
 
