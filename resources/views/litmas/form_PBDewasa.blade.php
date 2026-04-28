@@ -7,7 +7,7 @@
         Form Litmas {{ $jenis }} - {{ str_replace('_',' ', $kategori) }}
     </h2>
 
-    <form action="{{ route('litmas.preview') }}" method="POST">
+    <form action="{{ route('export.store') }}" method="POST">
         @csrf
 
 {{-- =========================
@@ -20,13 +20,14 @@
     <div class="grid grid-cols-2 gap-4">
 
         <input type="text" name="no_nota_dinas" class="input" placeholder="Nomor Nota Dinas">
-        <input type="date" name="tanggal_nota_dinas" class="input">
-
+        <input type="text" name="tanggal_nota_dinas" placeholder="Tanggal Nota Dinas"
+                onfocus="this.type='date'" onblur="if(!this.value)this.type='text'" class="input">
         <input type="text" name="perihal" class="input" placeholder="Perihal">
         <input type="text" name="kepada" class="input" placeholder="Kepada">
 
-        <input type="text" name="no_surat" class="input" placeholder="Nomor Surat">
-        <input type="date" name="tanggal_surat" class="input">
+        <input type="text" name="no_surat" class="input" placeholder="Nomor Surat Rujukan">
+        <input type="text" name="tanggal_surat" placeholder="Tanggal Surat Rujukan"
+                onfocus="this.type='date'" onblur="if(!this.value)this.type='text'" class="input">
 
         <input type="text" name="no_register" class="input" placeholder="No Register">
         <input type="text" name="perkara" class="input" placeholder="Perkara">
@@ -151,8 +152,8 @@
         <input type="text" name="no_registrasi"
                class="input" placeholder="No Registrasi">
         
-        <input type="date" name="tanggal_wawancara"
-               class="input" placeholder="Tanggal Wawancara">
+        <input type="text" name="tanggal_wawancara" placeholder="Tanggal Wawancara"
+                onfocus="this.type='date'" onblur="if(!this.value)this.type='text'" class="input">
 
         <input type="text" name="sumber_informasi"
                class="input" placeholder="Sumber Informasi">
@@ -751,6 +752,11 @@
     </div>
 
     <div>
+                <label>Tanggal Rekomendasi</label>
+                <input type="date" name="tgl_rekomendasi" class="input">
+            </div>
+
+    <div>
         <label>B. Rekomendasi</label>
         <textarea name="rekomendasi" class="input w-full h-24"></textarea>
     </div>
@@ -765,7 +771,7 @@
         </button>
 
         <button type="submit" class="btn-green">
-            Preview
+            Simpan & Preview
         </button>
     </div>
 

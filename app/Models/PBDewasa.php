@@ -185,4 +185,9 @@ public function klasifikasiHukum()
     {
         return $this->belongsTo(KlasifikasiHukum::class);
     }
+
+    public function families()
+{
+    return $this->hasMany(Family::class, 'litmas_id');
+}
 }

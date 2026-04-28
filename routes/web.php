@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\ExportController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\LitmasController;
@@ -54,7 +55,11 @@ Route::middleware('auth')->group(function () {
         ->where('jenis', 'anak|dewasa|awal')
         ->name('litmas.jenis');
 
-    Route::post('/litmas/preview', [LitmasController::class, 'preview'])->name('litmas.preview');
+    // Export Dan Download Litmas
+    Route::post('/litmas/store', [ExportController::class, 'store'])->name('export.store');
+    Route::get('/litmas/preview/{id}', [ExportController::class, 'preview'])->name('export.preview');
+    Route::get('/litmas/word/{id}', [ExportController::class, 'exportWord'])->name('export.word');
+    Route::get('/litmas/pdf/{id}', [ExportController::class, 'exportPDF'])->name('export.pdf');
 
     // CLIENT
     Route::resource('clients', ClientController::class)->except(['destroy']);
