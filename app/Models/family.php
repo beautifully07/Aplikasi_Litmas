@@ -9,10 +9,11 @@ class family extends Model
 {
     use HasFactory;
 
-    protected $table = 'family';
+    protected $table = 'families';
 
     protected $fillable = [
         'client_id',
+        'p_b_dewasa_id',
         'nama',
         'tempat_lahir',
         'tanggal_lahir',
@@ -38,7 +39,7 @@ class family extends Model
 
      public function pbdewasa()
     {
-        return $this->belongsTo(PBDewasa::class);
+        return $this->belongsTo(PBDewasa::class, 'p_b_dewasa_id');
     }
 }
 

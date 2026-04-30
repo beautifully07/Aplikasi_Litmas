@@ -19,4 +19,14 @@ class KlasifikasiHukum extends Model
         return $this->hasMany(Pasal::class);
     }
 
+    public function pbDewasa()
+{
+    return $this->belongsToMany(
+        PBDewasa::class,
+        'pb_dewasa_klasifikasi_hukum',
+        'klasifikasi_hukum_id',
+        'pb_dewasa_id'
+    );
+}
+
 }

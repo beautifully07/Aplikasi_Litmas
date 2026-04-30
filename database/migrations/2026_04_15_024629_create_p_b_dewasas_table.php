@@ -15,6 +15,14 @@ return new class extends Migration
         Schema::create('p_b_dewasas', function (Blueprint $table) {
             $table->id();
 
+            // ================================
+            // RELASI DATA (FOREIGN KEY)
+            // ================================
+            $table->unsignedBigInteger('client_id')->nullable();
+            $table->unsignedBigInteger('guarantor_id')->nullable();
+            $table->unsignedBigInteger('user_id')->nullable();
+            $table->unsignedBigInteger('klasifikasi_hukums_id')->nullable();
+
             // ==============================
             // NOTA DINAS
             // ==============================
@@ -166,14 +174,6 @@ return new class extends Migration
             // =========================
             $table->text('kesimpulan')->nullable();
             $table->text('rekomendasi')->nullable();
-
-            // ================================
-            // RELASI DATA (FOREIGN KEY)
-            // ================================
-            $table->unsignedBigInteger('client_id')->constrained()->onDelete('cascade');
-            $table->unsignedBigInteger('guarantor_id')->nullable()->constrained()->onDelete('set null');
-            $table->unsignedBigInteger('user_id')->nullable()->constrained()->onDelete('set null');
-            $table->unsignedBigInteger('klasifikasi_hukums_id')->nullable()->constrained()->onDelete('set null');
             $table->timestamps();
         });
     }

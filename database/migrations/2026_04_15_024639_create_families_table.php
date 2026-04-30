@@ -14,6 +14,9 @@ return new class extends Migration
         Schema::create('families', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('client_id')->constrained()->onDelete('cascade');
+            $table->foreignId('p_b_dewasa_id')
+             ->constrained('p_b_dewasas')
+             ->cascadeOnDelete();
             $table->string('nama');
             $table->string('tempat_lahir');
             $table->date('tanggal_lahir');

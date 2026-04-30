@@ -1,6 +1,12 @@
 @extends('layouts.app')
 
 @section('content')
+
+@if ($errors->any())
+    <div class="bg-red-200 p-3 mb-3">
+        {{ implode(', ', $errors->all()) }}
+    </div>
+@endif
 <div class="max-w-5xl mx-auto bg-white p-6 rounded shadow">
 
     <h2 class="text-xl font-bold mb-6">
@@ -268,7 +274,7 @@
 
         <div>
             <label>Nama Penjamin</label>
-            <select id="penjamin_select" class="input"></select>
+            <select name="guarantor_id" id="penjamin_select" class="input"></select>
         </div>
 
         <div><label>TTL</label><input type="text" id="penjamin_ttl" class="input bg-gray-100" readonly></div>

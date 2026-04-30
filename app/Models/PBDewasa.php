@@ -9,9 +9,13 @@ class PBDewasa extends Model
 {
     use HasFactory;
 
-    protected $table = 'PBDewasa';
+    protected $table = 'p_b_dewasas';
 
     protected $fillable = [
+
+    'client_id',
+    'user_id',
+    'guarantor_id',
 
     // ================================
     // NOTA DINAS
@@ -182,12 +186,17 @@ public function guarantor()
     }
 
 public function klasifikasiHukum()
-    {
-        return $this->belongsTo(KlasifikasiHukum::class);
-    }
+{
+    return $this->belongsToMany(
+        KlasifikasiHukum::class,
+        'pb_dewasa_klasifikasi_hukum', // nama pivot table
+        'pb_dewasa_id',
+        'klasifikasi_hukum_id'
+    );
+}
 
     public function families()
 {
-    return $this->hasMany(Family::class, 'litmas_id');
+    return $this->hasMany(family::class, 'p_b_dewasa_id');
 }
 }
