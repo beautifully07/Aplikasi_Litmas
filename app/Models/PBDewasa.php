@@ -172,17 +172,17 @@ class PBDewasa extends Model
 
 public function client()
     {
-        return $this->belongsTo(Client::class);
+        return $this->belongsTo(Client::class, 'client_id');
     }
 
 public function user()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class, 'user_id');
     }
 
 public function guarantor()
     {
-        return $this->belongsTo(Guarantor::class);
+        return $this->belongsTo(Guarantor::class, 'guarantor_id');
     }
 
 public function klasifikasiHukum()
