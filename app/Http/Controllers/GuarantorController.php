@@ -232,7 +232,7 @@ class GuarantorController extends Controller
 
     public function ajaxByClient($client_id)
 {
-    $penjamin = \App\Models\Guarantor::where('client_id', $client_id)->get();
+    $penjamin = Guarantor::where('client_id', $client_id)->get();
 
     return response()->json($penjamin);
 }
