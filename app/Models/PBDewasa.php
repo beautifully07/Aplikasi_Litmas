@@ -190,7 +190,7 @@ public function klasifikasiHukum()
     return $this->belongsToMany(
         KlasifikasiHukum::class,
         'pb_dewasa_klasifikasi_hukum', // nama pivot table
-        'pb_dewasa_id',
+        'p_b_dewasa_id',
         'klasifikasi_hukum_id'
     );
 }

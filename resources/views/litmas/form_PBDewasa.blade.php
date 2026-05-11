@@ -26,7 +26,7 @@
     <div class="grid grid-cols-2 gap-4">
 
         <input type="text" name="no_nota_dinas" class="input" placeholder="Nomor Nota Dinas">
-        <input type="text" name="tanggal_nota_dinas" placeholder="Tanggal Nota Dinas"
+        <input type="text" name="tgl_nota_dinas" placeholder="Tanggal Nota Dinas"
                 onfocus="this.type='date'" onblur="if(!this.value)this.type='text'" class="input">
         <input type="text" name="perihal" class="input" placeholder="Perihal">
         <input type="text" name="kepada" class="input" placeholder="Kepada">
@@ -167,8 +167,8 @@
         <input type="text" name="no_putusan_pengadilan"
                class="input" placeholder="No Putusan Pengadilan">
 
-        <input type="text" name="tgl_putusan_pengadilan"
-               class="input" placeholder="Tanggal Putusan Pengadilan">
+        <input type="text" name="tgl_putusan_pengadilan" placeholder="Tanggal Putusan Pengadilan"
+               onfocus="this.type='date'" onblur="if(!this.value)this.type='text'" class="input">
 
         <input type="text" name="lama_pidana"
                class="input" placeholder="Lama Pidana">
