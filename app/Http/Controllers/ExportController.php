@@ -30,9 +30,10 @@ class ExportController extends Controller
         // ── STEP 1 : NOTA DINAS ─────────────────────────────────────
         'no_nota_dinas'      => $request->no_nota_dinas,   // name="no_nota_dinas"
         'tanggal_nota_dinas' => $request->tgl_nota_dinas,  // name="tgl_nota_dinas"
-        'asal_surat_rujukan' => $request->kepada,          // name="kepada"
+        'asal_surat' => $request->kepada,          // name="kepada"
         'no_surat_rujukan'   => $request->no_surat,        // name="no_surat"
-        'tgl_surat_rujukan'  => $request->tanggal_surat,   // name="tanggal_surat" 'no_reg_rutan'=> $request->no_register, // name="no_register"
+        'tgl_surat_rujukan'  => $request->tgl_surat_rujukan,
+        'no_reg_rutan' => $request->no_reg_rutan,   // name="tanggal_surat" 'no_reg_rutan'=> $request->no_register, // name="no_register"
         'perkara' => $request->perkara,
 
         // ── STEP 2 : PK & IDENTITAS ─────────────────────────────────
@@ -42,7 +43,8 @@ class ExportController extends Controller
             'saksi'                       => $request->sumber_informasi,       // name="sumber_informasi"
             'no_putusan_pengadilan'       => $request->no_putusan_pengadilan, // name="no_putusan_pengadilan"
             'tanggal_putusan_pengadilan'  => $request->tgl_putusan_pengadilan,// name="tgl_putusan_pengadilan"
-            'lama_pidana_denda'           => $request->lama_pidana,           // name="lama_pidana"
+            'lama_pidana_denda'           => $request->lama_pidana, 
+            'no_litmas'                   => $request->no_litmas,          // name="lama_pidana"
 
             // ── STEP 2 : KONDISI PENJAMIN ────────────────────────────────
             'perkawinan_penjamin'       => $request->penjamin_perkawinan,      // name="penjamin_perkawinan"
@@ -101,9 +103,9 @@ class ExportController extends Controller
 
             // ── STEP 3 : VI. EVALUASI PEMBINAAN ─────────────────────────
             'program_admisi'     => $request->evaluasi_admisi,       // name="evaluasi_admisi"
-            '1/3_pidana'         => $request->tgl_sepertiga,         // name="tgl_sepertiga"
-            '1/2_pidana'         => $request->tgl_setengah,          // name="tgl_setengah"
-            '2/3_pidana'         => $request->tgl_duapertiga,        // name="tgl_duapertiga"
+            'sepertiga_pidana'         => $request->tgl_sepertiga,         // name="tgl_sepertiga"
+            'seperdua_pidana'         => $request->tgl_setengah,          // name="tgl_setengah"
+            'duapertiga_pidana'         => $request->tgl_duapertiga,        // name="tgl_duapertiga"
             'program_kepribadian'=> $request->pembinaan_kepribadian, // name="pembinaan_kepribadian"
             'program_kemandirian'=> $request->pembinaan_kemandirian, // name="pembinaan_kemandirian"
             'warga_binaan'       => $request->relasi_wbp,            // name="relasi_wbp"
@@ -193,10 +195,22 @@ class ExportController extends Controller
     {
         return [
 
+            // ================= NOTA DINAS =============
+            'no_nota_dinas' => $litmas->no_nota_dinas ?? '-',   // name="no_nota_dinas"
+            'tgl_nota_dinas' => $litmas->tanggal_nota_dinas ?? '-',  // name="tgl_nota_dinas"
+            'asal_surat' => $litmas->asal_surat_rujukan ?? '-',          // name="kepada"
+            'no_surat_rujukan'   => $litmas->no_surat_rujukan ?? '-',        // name="no_surat"
+            'tgl_rujukan'  => $litmas->tgl_surat_rujukan ?? '-',
+            'reg_rutan' => $litmas->no_reg_rutan ?? '-',
+            'tgl_wawancara' => $litmas->tanggal_studi_literatur ?? '-',
+            'sumber_informasi' => $litmas->saksi ?? '-',
+            
+
             // ================= CLIENT =================
             'nama_klien' => $litmas->client->nama ?? '-',
             'nama_klien_upper' => strtoupper($litmas->client->nama ?? '-'),
             'ttl_klien' => $litmas->client->tanggal_lahir ?? '-',
+            'tmpt_lahir' => $litmas->client->tempat_lahir ?? '-',
             'alamat_klien' => $litmas->client->alamat ?? '-',
             'agama_klien' => $litmas->client->agama ?? '-',
             'jk_klien' => $litmas->client->jenis_kelamin ?? '-',
@@ -235,44 +249,103 @@ class ExportController extends Controller
             'agama_ibu' => '-',
             'alamat_ibu' => '-',
 
+            // ============== KELUARGA ===============
+            // 'no_kk' => $litmas-> '-',
+
             // ================= DATA UMUM =================
             'no_litmas' => $litmas->no_litmas ?? '-',
             'no_putusan' => $litmas->no_putusan_pengadilan ?? '-',
             'tgl_putusan' => $litmas->tanggal_putusan_pengadilan ?? '-',
             'lama_pidana' => $litmas->lama_pidana_denda ?? '-',
 
-            // ================= NARASI =================
+            // ================= RIWAYAT HIDUP DAN PERKEMBANGAN KLIEN =================
+            // ================= RIWAYAT KELAHIRAN KLIEN ==================
             'kelahiran_klien' => $litmas->riwayat_kelahiran ?? '-',
             'pertumbuhan_klien' => $litmas->riwayat_pertumbuhan ?? '-',
             'perkembangan_klien' => $litmas->riwayat_perkembangan?? '-',
 
+            // ================== RIWAYAT PENDIDIKAN KLIEN =================
             'pendd_keluarga' => $litmas->pendidikan_keluarga ?? '-',
             'pendd_formal' => $litmas->pendidikan_formal ?? '-',
             'pendd_nonformal' => $litmas->pendidikan_nonformal ?? '-',
 
+            // ================== RIWAYAT TINGKAH LAKU KLIEN ==================
             'bakat_klien' => $litmas->bakat_potensi ?? '-',
             'relasi_keluarga' => $litmas->relasi_keluarga ?? '-',
             'ketaatan_klien' => $litmas->ketaatan_agama ?? '-',
-
             'kebiasaan_baik_klien' => $litmas->kebiasaan_baik ?? '-',
             'kebiasaan_jelek_klien' => $litmas->kebiasaan_buruk ?? '-',
-
-            'sikap_klien' => $litmas->sikap_bekerja ?? '-',
+            'sikap_bekerja' => $litmas->sikap_bekerja ?? '-',
             'pelanggaran_klien' => $litmas->riwayat_pelanggaran ?? '-',
             'rokok_napza_alkohol' => $litmas->riwayat_napza ?? '-',
 
+            // =============== RIWAYAT PERKAWINAN KLIEN ==========================
             'rwyt_kawin_klien' => $litmas->riwayat_perkawinan ?? '-',
 
+            // =============== KONDISI SOSIAL LINGKUNGAN TEMPAT TINGGAL PENJAMIN ===============
+            'kawin_penjamin' => $litmas->perkawinan_penjamin ?? '-',
+            'rs_kel' => $litmas->relasi_keluarga_penjamin ?? '-',
+            'rs_mas' => $litmas->relasi_masyarakat_penjamin ?? '-',
+
+            // ====================== PEKERJAAN DAN KEADAAN EKONOMI ==============
+            'pekerjaan_penjamin' => $litmas->pekerjaan_penjamin ?? '-',
+            'rt_penjamin' => $litmas->kondisi_rumah_penjamin ?? '-',
+
+            // ===================== KONDISI LINGKUNGAN SOSIAL, BUDAYA TEMPAT TINGGAL KLIEN =================
+            'rs_mas_klien' => $litmas->relasi_masyarakat_klien ?? '-',
+            'eko_budaya_pen_klien' => $litmas->kondisi_lingkungan_klien ?? '-',
+
+            // ===================== KEADAAN MASYARAKAT ==========================
+            'profesi_mas' => $litmas->profesi_masyarakat ?? '-',
+            'social_ekonomi_mas' => $litmas->ekonomi_masyarakat ?? '-',
+            'tingkat_pendd_mas' => $litmas->tingkat_pendidikan_masyarakat ?? '-',
+
+            // ======================= INTERAKSI SOSIAL DALAM MASYARAKAT ==============
+            'ph_mas' => $litmas->kehidupan_masyarakat ?? '-',
+            'ph_pend' => $litmas->kegiatan_pendidikan ?? '-',
+            'ph_agama' => $litmas->kegiatan_keagamaan ?? '-',
+            'ph_hukum_norma' => $litmas->penegak_hukum ?? '-',
+
+            // ====================== RIWAYAT TINDAK PIDANA ================
             'latar_blkg' => $litmas->latar_belakang ?? '-',
             'kronologis' => $litmas->kronologis ?? '-',
             'keadaan_korban' => $litmas->keadaan_korban ?? '-',
 
+            // ===================== AKIBAT YANG DITIMBULKAN ================
+            'akibat_klien' => $litmas->dampak_klien ?? '-',
+            'akibat_kel' => $litmas->dampak_keluarga ?? '-',
+            'akibat_mas' => $litmas->dampak_masyarakat ?? '-',
+            
+            // ================== TANGGAPAN KLIEN, KELUARGA, KORBAN, MASYARAKAT =============
             'tanggapan_klien' => $litmas->tanggapan_klien ?? '-',
             'tanggapan_kel' => $litmas->tanggapan_keluarga ?? '-',
             'tanggapan_mas' => $litmas->tanggapan_masyarakat ?? '-',
             'tanggapan_pemerintah' => $litmas->tanggapan_pemerintah ?? '-',
 
-            'hasil' => $litmas->hasil_setelah_program ?? '-',
+            // ======================== EVALUASI PERKEMBANGAN PEMBINAAN ================
+            // ======================== PROGRAM ADMISI, ORIENTASI, DAN OBSERVASI ========
+            'program_admisi' => $litmas->program_admisi ?? '-',
+            '1/3_pidana' => $litmas->sepertiga_pidana ?? '-',
+            '1/2_pidana' => $litmas->seperdua_pidana ?? '-',
+            '2/3_pidana' => $litmas->duapertiga_pidana ?? '-',
+            
+            // ==================== PROGRAM PEMBINAAN KEMANDIRIAN DAN KEPRIBADIAN
+            'prog_kepribadian' => $litmas->progam_kepribadian ?? '-',
+            'prog_kemandirian' => $litmas->program_kemandirian ?? '-',
+
+            // ==================== RELASI SOSIAL SELAMA DI DALAM RUTAN =============
+            'rutan_wbm' => $litmas->warga_binaan ?? '-',
+            'rutan_petugas' => $litmas->petugas ?? '-',
+            'rutan_kel' => $litmas->keluarga ?? '-',
+            'rutan_mas' => $litmas->masyarakat ?? '-',
+
+            // ==================== HASIL ASESMEN =====================
+            'hasil' => $litmas->rekomendasi_asesmen ?? '-',
+            
+            //========================= ANALISIS ======================
+            'sikap_klien' => $litmas->sikap_klien_pembinaan ?? '-',
+            'hasil_prog_binaan' => $litmas->hasil_setelah_program ?? '-',
+            'penerimaan_mas' => $litmas->kesiapan_masyarakat ?? '-',
             
             'kesimpulan' => $litmas->kesimpulan ?? '-',
             'rekomendasi' => $litmas->rekomendasi ?? '-',
@@ -290,7 +363,7 @@ class ExportController extends Controller
         $perkara = $this->formatPerkara($litmas);
 
         $template = new TemplateProcessor(
-            storage_path('app/public/templates/litmas/litmas.docx')
+            storage_path('app/templates/litmas/litmas.docx')
         );
 
         // AUTO SET ALL DATA
