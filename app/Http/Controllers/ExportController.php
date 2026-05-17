@@ -17,6 +17,8 @@ class ExportController extends Controller
         'client_id' => 'required',
         'guarantor_id' => 'required',
         'perkara' => 'required',
+        'pasal_ids'   => 'nullable|array',   // ← tambah ini
+        'pasal_ids.*' => 'exists:pasals,id', // ← validasi tiap ID
     ]);
 
     $client = Client::findOrFail($request->client_id);
@@ -26,11 +28,12 @@ class ExportController extends Controller
         'client_id' => $request->client_id,
         'user_id' => $client->user_id,
         'guarantor_id' => $request->guarantor_id,
+        
 
         // ── STEP 1 : NOTA DINAS ─────────────────────────────────────
         'no_nota_dinas'      => $request->no_nota_dinas,   // name="no_nota_dinas"
         'tanggal_nota_dinas' => $request->tgl_nota_dinas,  // name="tgl_nota_dinas"
-        'asal_surat' => $request->kepada,          // name="kepada"
+        'asal_surat_rujukan' => $request->asal_surat_rujukan,          
         'no_surat_rujukan'   => $request->no_surat,        // name="no_surat"
         'tgl_surat_rujukan'  => $request->tgl_surat_rujukan,
         'no_reg_rutan' => $request->no_reg_rutan,   // name="tanggal_surat" 'no_reg_rutan'=> $request->no_register, // name="no_register"
@@ -44,7 +47,7 @@ class ExportController extends Controller
             'no_putusan_pengadilan'       => $request->no_putusan_pengadilan, // name="no_putusan_pengadilan"
             'tanggal_putusan_pengadilan'  => $request->tgl_putusan_pengadilan,// name="tgl_putusan_pengadilan"
             'lama_pidana_denda'           => $request->lama_pidana, 
-            'no_litmas'                   => $request->no_litmas,          // name="lama_pidana"
+            'no_litmas'                   => $request->no_litmas,   
 
             // ── STEP 2 : KONDISI PENJAMIN ────────────────────────────────
             'perkawinan_penjamin'       => $request->penjamin_perkawinan,      // name="penjamin_perkawinan"
@@ -80,7 +83,7 @@ class ExportController extends Controller
             'relasi_masyarakat_klien'       => $request->lingkungan_relasi,    // name="lingkungan_relasi"
             'kondisi_lingkungan_klien'      => $request->lingkungan_kondisi,   // name="lingkungan_kondisi"
             'profesi_masyarakat'            => $request->lingkungan_profesi,   // name="lingkungan_profesi"
-            'eknomi_masyarakat'             => $request->lingkungan_strata,    // name="lingkungan_strata"
+            'ekonomi_masyarakat'             => $request->lingkungan_strata,    // name="lingkungan_strata"
             'tingkat_pendidikan_masyarakat' => $request->lingkungan_pendidikan,// name="lingkungan_pendidikan"
             'kehidupan_masyarakat'          => $request->kepedulian_masyarakat,// name="kepedulian_masyarakat"
             'kegiatan_pendidikan'           => $request->kepedulian_pendidikan,// name="kepedulian_pendidikan"
@@ -103,9 +106,9 @@ class ExportController extends Controller
 
             // ── STEP 3 : VI. EVALUASI PEMBINAAN ─────────────────────────
             'program_admisi'     => $request->evaluasi_admisi,       // name="evaluasi_admisi"
-            'sepertiga_pidana'         => $request->tgl_sepertiga,         // name="tgl_sepertiga"
-            'seperdua_pidana'         => $request->tgl_setengah,          // name="tgl_setengah"
-            'duapertiga_pidana'         => $request->tgl_duapertiga,        // name="tgl_duapertiga"
+            'sepertiga_pidana'         => $request->sepertiga_pidana,         // name="tgl_sepertiga"
+            'seperdua_pidana'         => $request->seperdua_pidana,          // name="tgl_setengah"
+            'duapertiga_pidana'         => $request->duapertiga_pidana,        // name="tgl_duapertiga"
             'program_kepribadian'=> $request->pembinaan_kepribadian, // name="pembinaan_kepribadian"
             'program_kemandirian'=> $request->pembinaan_kemandirian, // name="pembinaan_kemandirian"
             'warga_binaan'       => $request->relasi_wbp,            // name="relasi_wbp"
@@ -122,12 +125,23 @@ class ExportController extends Controller
             'kesiapan_masyarakat'   => $request->analisis_penerimaan,// name="analisis_penerimaan"
 
             // ── STEP 3 : IX. KESIMPULAN ─────────────────────────────────
+            'tgl_rekomendasi' => $request->tgl_rekomendasi,
             'kesimpulan'  => $request->kesimpulan,   // name="kesimpulan"
             'rekomendasi' => $request->rekomendasi,  // name="rekomendasi"
     ]);
 
     // simpan klasifikasi hukum
-    $litmas->klasifikasiHukum()->sync($request->klasifikasi_hukum_ids ?? []);
+    if ($request->pasal_ids) {
+        // Ambil klasifikasi_hukum_id dari tiap pasal yang dipilih
+        $klasifikasiIds = \App\Models\Pasal::whereIn('id', $request->pasal_ids)
+            ->pluck('klasifikasi_hukum_id')
+            ->filter()       // buang null
+            ->unique()
+            ->values()
+            ->toArray();
+
+        $litmas->klasifikasiHukum()->sync($klasifikasiIds);
+    }
 
     // simpan keluarga
     if ($request->nama) {
@@ -136,12 +150,14 @@ class ExportController extends Controller
 
             family::create([
                 'p_b_dewasa_id' => $litmas->id,
-                'nama' => $nama,
-                'jk' => $request->jk[$i] ?? null,
-                'usia' => $request->usia[$i] ?? null,
-                'pendidikan' => $request->pendidikan[$i] ?? null,
-                'pekerjaan' => $request->pekerjaan[$i] ?? null,
-                'keterangan' => $request->keterangan[$i] ?? null,
+                'client_id'     => $litmas->client_id, // ← TAMBAH INI
+                'nama'          => $nama,
+                'jk'            => $request->jk[$i] ?? null,
+                'usia'          => $request->usia[$i] ?? null,
+                'pendidikan'    => $request->pendidikan[$i] ?? null,
+                'pekerjaan'     => $request->pekerjaan[$i] ?? null,
+                'keterangan'    => $request->keterangan[$i] ?? null,
+                'no_kk'         => $request->no_kk ?? null,
             ]);
         }
     }
@@ -159,6 +175,7 @@ class ExportController extends Controller
         return PBDewasa::with([
             'client',
             'user',
+            // 'guarantors',
             'guarantor',
             'klasifikasiHukum',
             'families'
@@ -187,29 +204,98 @@ class ExportController extends Controller
     }
 
     /**
+     * ================================
+     * MERUBAH BENTUK TANGGAL YYYY/MM/DD KE 2 JANUARI 2026
+     * ================================
+     */
+
+    private function formatTanggalIndo($tanggal)
+    {
+        if (!$tanggal || $tanggal == '-') return '-';
+
+        $bulan = [
+            1 => 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+            'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+        ];
+
+        $date = date_create($tanggal);
+        if (!$date) return '-';
+
+        $hari = date_format($date, 'd');
+        $bulanIndex = (int) date_format($date, 'm');
+        $tahun = date_format($date, 'Y');
+
+        return ltrim($hari, '0') . ' ' . $bulan[$bulanIndex] . ' ' . $tahun;
+    }
+
+    /**
+     * ==========================
+     * YYYY/MM/DD KE HARI, TANGGAL
+     * 
+     */
+
+    private function formatTanggalHariIndo($tanggal)
+    {
+        if (!$tanggal || $tanggal == '-') return '-';
+
+        $hariIndo = [
+            'Sunday' => 'Minggu',
+            'Monday' => 'Senin',
+            'Tuesday' => 'Selasa',
+            'Wednesday' => 'Rabu',
+            'Thursday' => 'Kamis',
+            'Friday' => 'Jumat',
+            'Saturday' => 'Sabtu'
+        ];
+
+        $date = date_create($tanggal);
+        if (!$date) return '-';
+
+        $hari = $hariIndo[date_format($date, 'l')];
+        $tanggalIndo = $this->formatTanggalIndo($tanggal);
+
+        return $hari . ', ' . $tanggalIndo;
+    }
+    
+
+    /**
      * ============================
      * BUILD DATA (SEMUA PLACEHOLDER)
      * ============================
      */
     private function buildTemplateData($litmas, $perkara)
     {
+        // $guarantors = $litmas->guarantors ?? collect();
+
+        $guarantors = \App\Models\Guarantor::where('client_id', $litmas->client_id)->get();
+
+        // AYAH
+        $ayah = $guarantors->first(function ($g) {
+            return strtolower($g->hubungan_keluarga) === 'ayah kandung';
+        });
+
+        // IBU
+        $ibu = $guarantors->first(function ($g) {
+            return strtolower($g->hubungan_keluarga) === 'ibu kandung';
+        });
+
         return [
 
             // ================= NOTA DINAS =============
             'no_nota_dinas' => $litmas->no_nota_dinas ?? '-',   // name="no_nota_dinas"
-            'tgl_nota_dinas' => $litmas->tanggal_nota_dinas ?? '-',  // name="tgl_nota_dinas"
-            'asal_surat' => $litmas->asal_surat_rujukan ?? '-',          // name="kepada"
+            'tgl_nota_dinas' => $this->formatTanggalIndo($litmas->tanggal_nota_dinas) ?? '-',  // name="tgl_nota_dinas"
+            'asal_surat_rujukan' => $litmas->asal_surat_rujukan ?? '-',          // name="kepada"
             'no_surat_rujukan'   => $litmas->no_surat_rujukan ?? '-',        // name="no_surat"
-            'tgl_rujukan'  => $litmas->tgl_surat_rujukan ?? '-',
-            'reg_rutan' => $litmas->no_reg_rutan ?? '-',
-            'tgl_wawancara' => $litmas->tanggal_studi_literatur ?? '-',
+            'tgl_rujukan'  => $this->formatTanggalIndo($litmas->tgl_surat_rujukan) ?? '-',
+            'no_reg_rutan' => $litmas->no_reg_rutan ?? '-',
+            'tgl_wawancara' => $this->formatTanggalIndo($litmas->tanggal_studi_literatur) ?? '-',
             'sumber_informasi' => $litmas->saksi ?? '-',
             
 
             // ================= CLIENT =================
             'nama_klien' => $litmas->client->nama ?? '-',
             'nama_klien_upper' => strtoupper($litmas->client->nama ?? '-'),
-            'ttl_klien' => $litmas->client->tanggal_lahir ?? '-',
+            'ttl_klien' => $this->formatTanggalIndo($litmas->client->tanggal_lahir) ?? '-',
             'tmpt_lahir' => $litmas->client->tempat_lahir ?? '-',
             'alamat_klien' => $litmas->client->alamat ?? '-',
             'agama_klien' => $litmas->client->agama ?? '-',
@@ -238,24 +324,36 @@ class ExportController extends Controller
             'perkara_upper' => strtoupper($perkara),
 
             // ================= AYAH =================
-            'nama_ayah' => $litmas->guarantor->nama ?? '-',
-            'ttl_ayah' => $litmas->guarantor->ttl ?? '-',
-            'agama_ayah' => $litmas->guarantor->agama ?? '-',
-            'alamat_ayah' => $litmas->guarantor->alamat ?? '-',
+            'nama_ayah'      => $ayah->nama ?? '-',
+            'ttl_ayah' => ($ayah->tempat_lahir ?? '-') . ', ' . $this->formatTanggalIndo($ayah->tanggal_lahir ?? ''),
+            'agama_ayah'     => $ayah->agama ?? '-',
+            'suku_ayah'      => $ayah->suku ?? '-',
+            'bangsa_ayah'    => ($ayah->suku ?? '-') . ' / ' . ($ayah->kewarganegaraan ?? '-'),  // ← TAMBAH
+            'wn_ayah'        => $ayah->kewarganegaraan ?? '-',
+            'pendidikan_ayah'=> $ayah->pendidikan_terakhir ?? '-',
+            'pekerjaan_ayah' => $ayah->pekerjaan ?? '-',   // ← sekalian fix bug suku sebelumnya
+            'alamat_ayah'   => $ayah->alamat ?? '-',
+            'hub_kel_ayah'   => $ayah->hubungan_keluarga ?? '-',
 
             // ================= IBU =================
-            'nama_ibu' => '-',
-            'ttl_ibu' => '-',
-            'agama_ibu' => '-',
-            'alamat_ibu' => '-',
+            'nama_ibu'       => $ibu->nama ?? '-',
+            'ttl_ibu' => ($ibu->tempat_lahir ?? '-') . ', ' . $this->formatTanggalIndo($ibu->tanggal_lahir ?? ''),
+            'agama_ibu'      => $ibu->agama ?? '-',
+            'suku_ibu'       => $ibu->suku ?? '-',
+            'bangsa_ibu'     => ($ibu->suku ?? '-') . ' / ' . ($ibu->kewarganegaraan ?? '-'),    // ← TAMBAH
+            'wn_ibu'         => $ibu->kewarganegaraan ?? '-',
+            'pendidikan_ibu' => $ibu->pendidikan_terakhir ?? '-',
+            'pekerjaan_ibu'  => $ibu->pekerjaan ?? '-',    // ← sekalian fix bug suku sebelumnya
+            'alamat_ibu'   => $ibu->alamat ?? '-',
+            'hub_kel_ibu'    => $ibu->hubungan_keluarga ?? '-',
 
             // ============== KELUARGA ===============
-            // 'no_kk' => $litmas-> '-',
+            'no_kk' => $litmas->families->first()->no_kk ?? '-',
 
             // ================= DATA UMUM =================
             'no_litmas' => $litmas->no_litmas ?? '-',
             'no_putusan' => $litmas->no_putusan_pengadilan ?? '-',
-            'tgl_putusan' => $litmas->tanggal_putusan_pengadilan ?? '-',
+            'tgl_putusan' => $this->formatTanggalIndo($litmas->tanggal_putusan_pengadilan) ?? '-',
             'lama_pidana' => $litmas->lama_pidana_denda ?? '-',
 
             // ================= RIWAYAT HIDUP DAN PERKEMBANGAN KLIEN =================
@@ -297,7 +395,7 @@ class ExportController extends Controller
 
             // ===================== KEADAAN MASYARAKAT ==========================
             'profesi_mas' => $litmas->profesi_masyarakat ?? '-',
-            'social_ekonomi_mas' => $litmas->ekonomi_masyarakat ?? '-',
+            'ekonomi_mas' => $litmas->ekonomi_masyarakat ?? '-',
             'tingkat_pendd_mas' => $litmas->tingkat_pendidikan_masyarakat ?? '-',
 
             // ======================= INTERAKSI SOSIAL DALAM MASYARAKAT ==============
@@ -325,12 +423,12 @@ class ExportController extends Controller
             // ======================== EVALUASI PERKEMBANGAN PEMBINAAN ================
             // ======================== PROGRAM ADMISI, ORIENTASI, DAN OBSERVASI ========
             'program_admisi' => $litmas->program_admisi ?? '-',
-            '1/3_pidana' => $litmas->sepertiga_pidana ?? '-',
-            '1/2_pidana' => $litmas->seperdua_pidana ?? '-',
-            '2/3_pidana' => $litmas->duapertiga_pidana ?? '-',
+            'sepertiga_pidana' => $this->formatTanggalIndo($litmas->sepertiga_pidana) ?? '-',
+            'seperdua_pidana' => $this->formatTanggalIndo($litmas->seperdua_pidana) ?? '-',
+            'duapertiga_pidana' => $this->formatTanggalIndo($litmas->duapertiga_pidana) ?? '-',
             
             // ==================== PROGRAM PEMBINAAN KEMANDIRIAN DAN KEPRIBADIAN
-            'prog_kepribadian' => $litmas->progam_kepribadian ?? '-',
+            'prog_kepribadian' => $litmas->program_kepribadian ?? '-',
             'prog_kemandirian' => $litmas->program_kemandirian ?? '-',
 
             // ==================== RELASI SOSIAL SELAMA DI DALAM RUTAN =============
@@ -348,6 +446,7 @@ class ExportController extends Controller
             'penerimaan_mas' => $litmas->kesiapan_masyarakat ?? '-',
             
             'kesimpulan' => $litmas->kesimpulan ?? '-',
+            'tgl_rekomendasi' => $this->formatTanggalHariIndo($litmas->tgl_rekomendasi) ?? '-',
             'rekomendasi' => $litmas->rekomendasi ?? '-',
         ];
     }
@@ -363,7 +462,7 @@ class ExportController extends Controller
         $perkara = $this->formatPerkara($litmas);
 
         $template = new TemplateProcessor(
-            storage_path('app/templates/litmas/litmas.docx')
+            storage_path('app/public/templates/litmas/litmas.docx')
         );
 
         // AUTO SET ALL DATA
@@ -381,16 +480,21 @@ class ExportController extends Controller
 
             foreach ($litmas->families as $i => $f) {
                 $index = $i + 1;
-
-                $template->setValue("nama#$index", $f->nama ?? '-');
-                $template->setValue("jk#$index", $f->jk == 'L' ? 'Laki-laki' : 'Perempuan');
-                $template->setValue("usia#$index", ($f->usia ?? '-') . ' tahun');
+                $template->setValue("nama#$index",       $f->nama ?? '-');
+                $template->setValue("jk#$index",         $f->jk == 'L' ? 'Laki-laki' : 'Perempuan');
+                $template->setValue("usia#$index",       ($f->usia ?? '-') . ' tahun');
                 $template->setValue("pendidikan#$index", $f->pendidikan ?? '-');
-                $template->setValue("pekerjaan#$index", $f->pekerjaan ?? '-');
-                $template->setValue("ket#$index", $f->keterangan ?? '-');
+                $template->setValue("pekerjaan#$index",  $f->pekerjaan ?? '-');
+                $template->setValue("ket#$index",        $f->keterangan ?? '-');
             }
         } else {
-            $template->setValue('nama', '-');
+            // ← GANTI: clear SEMUA placeholder di baris tabel sekaligus
+            $template->setValue('nama',       '-');
+            $template->setValue('jk',         '-');
+            $template->setValue('usia',       '-');
+            $template->setValue('pendidikan', '-');
+            $template->setValue('pekerjaan',  '-');
+            $template->setValue('ket',        '-');
         }
 
         // SAVE FILE

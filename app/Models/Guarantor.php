@@ -13,6 +13,7 @@ class Guarantor extends Model
 
     protected $fillable = [
         'client_id',
+        'p_b_dewasa_id',
         'no_kk',
         'nama',
         'tempat_lahir',
@@ -38,4 +39,9 @@ class Guarantor extends Model
     {
         return Carbon::parse($this->tanggal_lahir)->age;
     }
+
+    public function litmas()
+{
+    return $this->belongsTo(PBDewasa::class, 'p_b_dewasa_id');
+}
 }

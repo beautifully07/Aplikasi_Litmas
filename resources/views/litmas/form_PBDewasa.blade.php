@@ -28,14 +28,14 @@
         <input type="text" name="no_nota_dinas" class="input" placeholder="Nomor Nota Dinas">
         <input type="text" name="tgl_nota_dinas" placeholder="Tanggal Nota Dinas"
                 onfocus="this.type='date'" onblur="if(!this.value)this.type='text'" class="input">
-        <input type="text" name="perihal" class="input" placeholder="Perihal">
-        <input type="text" name="kepada" class="input" placeholder="Kepada">
+        {{-- <input type="text" name="perihal" class="input" placeholder="Perihal"> --}}
+        <input type="text" name="asal_surat_rujukan" class="input" placeholder="Kepada">
 
         <input type="text" name="no_surat" class="input" placeholder="Nomor Surat Rujukan">
-        <input type="text" name="tanggal_surat" placeholder="Tanggal Surat Rujukan"
+        <input type="date" name="tgl_surat_rujukan" placeholder="Tanggal Surat Rujukan"
                 onfocus="this.type='date'" onblur="if(!this.value)this.type='text'" class="input">
 
-        <input type="text" name="no_register" class="input" placeholder="No Register">
+        <input type="text" name="no_reg_rutan" class="input" placeholder="No Register">
         <input type="text" name="perkara" class="input" placeholder="Perkara">
 
     </div>
@@ -47,7 +47,7 @@
         <div id="dasar_hukum_wrapper" class="space-y-4 mt-4">
 
             <div class="flex gap-2 w-full">
-                <select name="pasal_id[]" class="input w-full">
+                <select name="pasal_ids[]" class="input w-full">
                     <option value="">-- Pilih Pasal --</option>
 
                     @foreach($pasals as $pasal)
@@ -155,7 +155,7 @@
         <input type="text" id="nama_klien"
                class="input bg-gray-100" readonly>
 
-        <input type="text" name="no_registrasi"
+        <input type="text" name="no_litmas"
                class="input" placeholder="No Registrasi">
         
         <input type="text" name="tanggal_wawancara" placeholder="Tanggal Wawancara"
@@ -328,12 +328,12 @@
     </table>
 
     {{-- NO KK --}}
-<div class="mt-4">
-    <label class="block font-semibold mb-1">No. Kartu Keluarga</label>
-    <input type="text" name="no_kk"
-           class="w-full border px-3 py-2 rounded"
-           placeholder="Masukkan No KK">
-</div>
+    <div class="mt-4">
+        <label class="block font-semibold mb-1">No. Kartu Keluarga</label>
+        <input type="text" id="no_kk_input"
+            class="w-full border px-3 py-2 rounded"
+            placeholder="Masukkan No KK">
+    </div>
 </div>
 
 </div>
@@ -570,7 +570,6 @@
 
 </div>
 
-
 {{-- ================= IV ================= --}}
 <h3 class="text-lg font-semibold mt-8 mb-4">
     IV. RIWAYAT TINDAK PIDANA
@@ -661,17 +660,17 @@
         <div class="grid grid-cols-3 gap-4 mt-2">
             <div>
                 <label>1/3 Masa Pidana</label>
-                <input type="date" name="tgl_sepertiga" class="input">
+                <input type="date" name="sepertiga_pidana" class="input">
             </div>
 
             <div>
                 <label>1/2 Masa Pidana</label>
-                <input type="date" name="tgl_setengah" class="input">
+                <input type="date" name="seperdua_pidana" class="input">
             </div>
 
             <div>
                 <label>2/3 Masa Pidana</label>
-                <input type="date" name="tgl_duapertiga" class="input">
+                <input type="date" name="duapertiga_pidana" class="input">
             </div>
         </div>
     </div>
@@ -767,6 +766,9 @@
         <textarea name="rekomendasi" class="input w-full h-24"></textarea>
     </div>
 
+    {{-- Hidden input yang akan tersubmit --}}
+    <input type="hidden" name="no_kk" id="no_kk_hidden">
+
 </div>
 </div>
 
@@ -814,6 +816,14 @@ textarea.input {
 
 /* STEP */
 function nextStep(step){
+
+    // Sinkron no_kk dari input visible ke hidden
+    let noKkInput  = document.getElementById('no_kk_input');
+    let noKkHidden = document.getElementById('no_kk_hidden');
+    if (noKkInput && noKkHidden) {
+        noKkHidden.value = noKkInput.value;
+    }
+
     document.getElementById('step-1').style.display='none';
     document.getElementById('step-2').style.display='none';
     document.getElementById('step-3').style.display='none';
@@ -827,6 +837,13 @@ function nextStep(step){
 }
 
 function prevStep(step){
+    // Sinkron balik dari hidden ke input visible saat kembali ke step 2
+    let noKkInput  = document.getElementById('no_kk_input');
+    let noKkHidden = document.getElementById('no_kk_hidden');
+    if (noKkInput && noKkHidden) {
+        noKkInput.value = noKkHidden.value;
+    }
+    
     nextStep(step);
 }
 
@@ -866,7 +883,7 @@ function tambahDasarHukum(){
 
     let html = `
     <div class="flex gap-2">
-        <select name="pasal_id[]" class="input">
+        <select name="pasal_ids[]" class="input">
             ${pasalOptions}
         </select>
 
@@ -1042,52 +1059,36 @@ function setVal(id, value){
 // MENAMBAH BARI TABEL
 
 function tambahBaris(){
-
     let row = `
     <tr class="hover:bg-gray-50 transition">
-
         <td class="p-2">
-            <input type="text" name="keluarga[nama][]"
-                class="input-modern">
+            <input type="text" name="nama[]" class="input-modern">
         </td>
-
         <td class="p-2">
-            <select name="keluarga[jk][]" class="input-modern">
+            <select name="jk[]" class="input-modern">
                 <option value="L">L</option>
                 <option value="P">P</option>
             </select>
         </td>
-
         <td class="p-2">
-            <input type="number" name="keluarga[usia][]"
-                class="input-modern">
+            <input type="number" name="usia[]" class="input-modern">
         </td>
-
         <td class="p-2">
-            <input type="text" name="keluarga[pendidikan][]"
-                class="input-modern">
+            <input type="text" name="pendidikan[]" class="input-modern">
         </td>
-
         <td class="p-2">
-            <input type="text" name="keluarga[pekerjaan][]"
-                class="input-modern">
+            <input type="text" name="pekerjaan[]" class="input-modern">
         </td>
-
         <td class="p-2">
-            <input type="text" name="keluarga[ket][]"
-                class="input-modern">
+            <input type="text" name="keterangan[]" class="input-modern">
         </td>
-
         <td class="p-2 text-center">
-            <button type="button"
-            onclick="hapusBaris(this)"
-            class="bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded text-sm">
-            🗑
-        </button>
+            <button type="button" onclick="hapusBaris(this)"
+                class="bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded text-sm">
+                🗑
+            </button>
         </td>
-
-    </tr>
-    `;
+    </tr>`;
 
     document.getElementById('table_keluarga')
         .insertAdjacentHTML('beforeend', row);

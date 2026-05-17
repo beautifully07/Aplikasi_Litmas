@@ -15,26 +15,17 @@ class family extends Model
         'client_id',
         'p_b_dewasa_id',
         'nama',
-        'tempat_lahir',
-        'tanggal_lahir',
-        'agama',
-        'pendidikan_terakhir',
-        'pekerjaan',
-        'alamat',
+        'jk',
         'usia',
-        'hubungan_keluarga',
+        'pendidikan',
+        'pekerjaan',
+        'keterangan',
     ];
-
-    protected $appends = ['usia'];
 
     // Relasi ke Client
     public function client()
     {
         return $this->belongsTo(Client::class);
-    }
-    public function getUsiaAttribute()
-    {
-        return Carbon::parse($this->tanggal_lahir)->age;
     }
 
      public function pbdewasa()
