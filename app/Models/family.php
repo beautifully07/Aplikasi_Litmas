@@ -13,6 +13,7 @@ class family extends Model
 
     protected $fillable = [
         'client_id',
+        'no_kk',
         'p_b_dewasa_id',
         'nama',
         'jk',

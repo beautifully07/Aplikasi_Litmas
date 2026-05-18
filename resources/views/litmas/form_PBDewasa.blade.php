@@ -50,12 +50,14 @@
                 <select name="pasal_ids[]" class="input w-full">
                     <option value="">-- Pilih Pasal --</option>
 
-                    @foreach($pasals as $pasal)
-                        <option value="{{ $pasal->id }}">
-                            Pasal {{ $pasal->nomor_pasal }} -
-                            {{ $pasal->klasifikasiHukum->nama_klasifikasi ?? '-' }}
+                   @foreach($pasals as $pasal)
+                    @foreach($pasal->ayats as $ayat)
+                        <option value="{{ $pasal->id }}_{{ $ayat->id }}">
+                            {{ $pasal->klasifikasiHukum->nama_klasifikasi ?? '-' }} -
+                            Pasal {{ $pasal->nomor_pasal }} Ayat ({{ $ayat->nomor_ayat }})
                         </option>
                     @endforeach
+                @endforeach
                 </select>
 
                 <button type="button"
