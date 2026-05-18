@@ -23,4 +23,16 @@ class Pasal extends Model
     {
         return $this->belongsTo(KlasifikasiHukum::class, 'klasifikasi_hukum_id');
     }
+
+    // App\Models\Pasal.php
+
+public function pbDewasas()
+{
+    return $this->belongsToMany(
+        \App\Models\PBDewasa::class,
+        'p_b_dewasa_pasal',  // tabel pivot — sama dengan di PBDewasa::pasals()
+        'pasal_id',          // FK kolom pasal di tabel pivot
+        'p_b_dewasa_id'      // FK kolom pb_dewasa di tabel pivot
+    );
+}
 }
