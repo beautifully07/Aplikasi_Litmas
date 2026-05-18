@@ -73,7 +73,7 @@
     ========================== --}}
     <div class="mt-10">
 
-        <div class="flex items-center justify-between mb-4">
+        <div class="flex items-center justify-between mb-4 mt-4">
             <h2 class="text-xl font-semibold text-gray-800">Data Litmas Tersimpan</h2>
         </div>
 
@@ -191,7 +191,7 @@
                                     </a> --}}
 
                                     {{-- HAPUS --}}
-                                    {{-- <form method="POST"
+                                    <form method="POST"
                                           action="{{ route('litmas.destroy', $litmas->id) }}"
                                           onsubmit="return confirm('Hapus data litmas {{ $litmas->client->nama ?? '' }} ini?')">
                                         @csrf
@@ -200,7 +200,7 @@
                                                 class="px-2 py-1 text-xs bg-red-100 text-red-700 rounded hover:bg-red-200 transition">
                                             🗑 Hapus
                                         </button>
-                                    </form> --}}
+                                    </form>
 
                                 </div>
                             </td>

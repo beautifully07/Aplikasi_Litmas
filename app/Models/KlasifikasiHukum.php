@@ -25,7 +25,7 @@ class KlasifikasiHukum extends Model
         PBDewasa::class,
         'pb_dewasa_klasifikasi_hukum',
         'klasifikasi_hukum_id',
-        'pb_dewasa_id'
+        'p_b_dewasa_id'
     );
 }
 

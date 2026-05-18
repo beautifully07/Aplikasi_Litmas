@@ -23,21 +23,16 @@
     Buat Litmas
 </a>
 
-<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
 
     <div class="bg-white p-6 rounded-lg shadow">
-        <h3 class="text-gray-500 text-sm">Total Surat</h3>
-        <p class="text-3xl font-bold">{{ $totalSurat ?? 0 }}</p>
+        <h3 class="text-gray-500 text-sm">Total Litmas</h3>
+        <p class="text-3xl font-bold">{{ $totalLitmas ?? 0 }}</p>
     </div>
 
     <div class="bg-white p-6 rounded-lg shadow">
-        <h3 class="text-gray-500 text-sm">Surat Masuk</h3>
-        <p class="text-3xl font-bold">{{ $suratMasuk ?? 0 }}</p>
-    </div>
-
-    <div class="bg-white p-6 rounded-lg shadow">
-        <h3 class="text-gray-500 text-sm">Surat Keluar</h3>
-        <p class="text-3xl font-bold">{{ $suratKeluar ?? 0 }}</p>
+        <h3 class="text-gray-500 text-sm">Total Klien</h3>
+        <p class="text-3xl font-bold">{{ $totalKlien ?? 0 }}</p>
     </div>
 
 </div>

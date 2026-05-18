@@ -218,7 +218,7 @@ class PBDewasa extends Model
         return $this->belongsToMany(
             KlasifikasiHukum::class,
             'pb_dewasa_klasifikasi_hukum', // tabel pivot
-            'pb_dewasa_id',                // FK → p_b_dewasas.id  ← sesuaikan jika perlu
+            'p_b_dewasa_id',                // FK → p_b_dewasas.id  ← sesuaikan jika perlu
             'klasifikasi_hukum_id'         // FK → klasifikasi_hukums.id
         );
     }
